@@ -3,33 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id             String @id @default(uuid())
-  email          String @unique @db.VarChar(255)
-  hashedPassword String
-
-  role  Role   @default(USER)
-  posts Post[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Post {
-  id          String   @id @default(uuid())
-  publishedAt DateTime @default(now())
-  title       String
-  content     String
-  author      User     @relation(fields: [authorId], references: [id])
-  authorId    String
-}
-
-enum Role {
-  SUPERADMIN
-  ADMIN
-  USER
+model Example {
+  id String @id @default(uuid())
 }

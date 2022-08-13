@@ -1,23 +1,16 @@
-import { Provider } from "app/provider";
-import Head from "next/head";
-import React from "react";
-import type { SolitoAppProps } from "solito";
 import { withTRPC } from "@trpc/next";
 import type { AppRouter } from "api/src/index";
-import "raf/polyfill";
-import { getSessionAuth } from "../lib/ssrHelpers";
+import { Provider } from "app/provider";
 import { AppContext } from "next/app";
+import Head from "next/head";
+import "raf/polyfill";
+import type { SolitoAppProps } from "solito";
 
 interface MyAppProps extends SolitoAppProps {
-  pageProps: {
-    sessionToken: string;
-  };
+  pageProps: {};
 }
 
-function MyApp({
-  Component,
-  pageProps: { sessionToken, ...pageProps },
-}: MyAppProps) {
+function MyApp({ Component, pageProps: { ...pageProps } }: MyAppProps) {
   return (
     <>
       <Head>
@@ -28,7 +21,7 @@ function MyApp({
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Provider sessionTokenServer={sessionToken}>
+      <Provider>
         <Component {...pageProps} />
       </Provider>
     </>
@@ -36,12 +29,9 @@ function MyApp({
 }
 
 MyApp.getInitialProps = async ({ ctx }: AppContext) => {
-  const { req, res } = ctx || {};
-  const { sessionToken } = getSessionAuth({ req, res });
+  // const { req, res } = ctx || {};
   return {
-    pageProps: {
-      sessionToken: sessionToken,
-    },
+    pageProps: {},
   };
 };
 
@@ -72,18 +62,14 @@ export default withTRPC<AppRouter>({
       // queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
       headers: async () => {
         const { req, res } = ctx || {};
-        const { headers } = getSessionAuth({ req, res });
         if (ctx?.req) {
           // on ssr, forward client's headers to the server
           return {
             ...ctx.req.headers,
             "x-ssr": "1",
-            ...headers,
           };
         }
-        return {
-          ...headers,
-        };
+        return {};
       },
     };
   },
