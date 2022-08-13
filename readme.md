@@ -171,13 +171,13 @@ const enviromentConfigs: { [key in UpdateChannel]: IConfig } = {
   },
   staging: {
     // Update this to your api url in staging
-    apiUrl: 'https://staging-kaol.vercel.app/api/trpc',
+    apiUrl: "https://staging-kaol.vercel.app/api/trpc",
   },
   production: {
     // Update this to your api url in production
-    apiUrl: 'https://kaol.vercel.app/api/trpc',
+    apiUrl: "https://kaol.vercel.app/api/trpc",
   },
-}
+};
 ```
 
 You should use EAS or Expo Build to build your app and deploy to the stores.

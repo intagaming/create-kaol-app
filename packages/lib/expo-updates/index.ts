@@ -1,1 +1,1 @@
-export * from 'expo-updates'
+export * from "expo-updates";

@@ -1,3 +1,3 @@
-import { PostDetailScreen } from 'app/features/post/details-screen'
+import { PostDetailScreen } from "app/features/post/details-screen";
 
-export default PostDetailScreen
+export default PostDetailScreen;

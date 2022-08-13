@@ -1,9 +1,9 @@
-import { createPosts } from './createPosts'
-import { createUsers } from './createUsers'
+import { createPosts } from "./createPosts";
+import { createUsers } from "./createUsers";
 
 const seed = async () => {
-  const users = await createUsers()
-  await createPosts([users.example, users.admin])
-}
+  const users = await createUsers();
+  await createPosts([users.example, users.admin]);
+};
 
-seed()
+seed();

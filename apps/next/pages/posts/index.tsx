@@ -1,3 +1,3 @@
-import { PostListScreen } from 'app/features/post/list-screen'
+import { PostListScreen } from "app/features/post/list-screen";
 
-export default PostListScreen
+export default PostListScreen;

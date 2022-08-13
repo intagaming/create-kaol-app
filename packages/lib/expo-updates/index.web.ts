@@ -1,2 +1,2 @@
-export const releaseChannel = 'default'
-export const channel = null
+export const releaseChannel = "default";
+export const channel = null;

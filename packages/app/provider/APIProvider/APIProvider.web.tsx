@@ -3,4 +3,4 @@
 
 export const APIProvider = ({ children }: { children: React.ReactElement }) => (
   <>{children}</>
-)
+);

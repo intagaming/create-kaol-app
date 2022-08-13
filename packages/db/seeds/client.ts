@@ -1,3 +1,3 @@
-import { PrismaClient } from 'db'
+import { PrismaClient } from "db";
 
-export const prisma = new PrismaClient()
+export const prisma = new PrismaClient();

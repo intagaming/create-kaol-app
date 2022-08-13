@@ -1,17 +1,17 @@
-import { TextLink } from 'solito/link'
+import { TextLink } from "solito/link";
 import {
   AuthenticatedOnly,
   UnauthenticatedOnly,
   useAuth,
-} from 'app/provider/AuthProvider'
-import { Button } from 'app/components/Button'
-import { Text, View } from 'universal'
-import { routes } from 'app/navigation/routePaths'
-import { tw } from 'universal/tailwind'
-import { EnvironmentStatusBar } from 'app/components/EnvironmentStatusBar'
+} from "app/provider/AuthProvider";
+import { Button } from "app/components/Button";
+import { Text, View } from "universal";
+import { routes } from "app/navigation/routePaths";
+import { tw } from "universal/tailwind";
+import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
 
 export function HomeScreen() {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth();
 
   return (
     <View className="flex-1">
@@ -29,7 +29,7 @@ export function HomeScreen() {
             React Native.
           </Text>
           <Text className="text-center " tw="">
-            Kaol is made by{' '}
+            Kaol is made by{" "}
             <TextLink href="https://github.com/chamatt">@chamatt</TextLink>.
           </Text>
         </View>
@@ -59,7 +59,7 @@ export function HomeScreen() {
             <Button
               onPress={async () => {
                 try {
-                  logout()
+                  logout();
                 } catch (err) {}
               }}
             >
@@ -69,5 +69,5 @@ export function HomeScreen() {
         </AuthenticatedOnly>
       </View>
     </View>
-  )
+  );
 }

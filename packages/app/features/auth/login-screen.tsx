@@ -1,28 +1,28 @@
-import { useAuth } from 'app/provider/AuthProvider'
-import { TextLink } from 'solito/link'
-import { Button } from 'app/components/Button'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'solito/router'
-import { Text, View } from 'universal'
-import { colors, styled, tw } from 'universal/tailwind'
-import { ScrollView, TextInput } from 'react-native'
-import { routes } from 'app/navigation/routePaths'
+import { useAuth } from "app/provider/AuthProvider";
+import { TextLink } from "solito/link";
+import { Button } from "app/components/Button";
+import { useEffect, useState } from "react";
+import { useRouter } from "solito/router";
+import { Text, View } from "universal";
+import { colors, styled, tw } from "universal/tailwind";
+import { ScrollView, TextInput } from "react-native";
+import { routes } from "app/navigation/routePaths";
 
-const Card = styled(View, 'bg-white shadow-sm mb-4 p-6 border max-w-lg w-full')
-const Input = styled(TextInput, 'bg-white shadow-sm border py-2 px-2')
+const Card = styled(View, "bg-white shadow-sm mb-4 p-6 border max-w-lg w-full");
+const Input = styled(TextInput, "bg-white shadow-sm border py-2 px-2");
 
 export function LoginScreen() {
-  const router = useRouter()
-  const { isAuthenticated, signIn, signInLoading, errorMessage } = useAuth()
+  const router = useRouter();
+  const { isAuthenticated, signIn, signInLoading, errorMessage } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(routes.home.getPath())
+      router.push(routes.home.getPath());
     }
-  }, [router, isAuthenticated])
+  }, [router, isAuthenticated]);
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <ScrollView>
@@ -59,7 +59,7 @@ export function LoginScreen() {
               disabled={signInLoading}
               isLoading={signInLoading}
               onPress={() => {
-                signIn({ email, password })
+                signIn({ email, password });
               }}
             >
               Login
@@ -79,7 +79,7 @@ export function LoginScreen() {
         </Card>
       </View>
 
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <View className="p-4 items-center">
           <Text>Use a seeded account or create one</Text>
 
@@ -90,5 +90,5 @@ export function LoginScreen() {
         </View>
       )}
     </ScrollView>
-  )
+  );
 }

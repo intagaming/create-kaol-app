@@ -1,16 +1,16 @@
-import { FunctionComponent } from 'react'
-import { StyleProp } from 'react-native'
-import { create, TwConfig } from 'twrnc'
-import { ClassInput } from 'twrnc/dist/esm/types'
-import config from './helpers/tailwind.config'
+import { FunctionComponent } from "react";
+import { StyleProp } from "react-native";
+import { create, TwConfig } from "twrnc";
+import { ClassInput } from "twrnc/dist/esm/types";
+import config from "./helpers/tailwind.config";
 
-export const tw = create(config as TwConfig)
+export const tw = create(config as TwConfig);
 
 type StyledTailwind = {
-  className?: string
-  tw?: string
-  style?: StyleProp<any>
-}
+  className?: string;
+  tw?: string;
+  style?: StyleProp<any>;
+};
 
 /**
  * @example
@@ -49,8 +49,8 @@ export function styled<P>(
           ),
         ]}
       />
-    )
-  }
-  ComponentWithStyle.displayName = `styled(${WrappedComponent.displayName})`
-  return ComponentWithStyle
+    );
+  };
+  ComponentWithStyle.displayName = `styled(${WrappedComponent.displayName})`;
+  return ComponentWithStyle;
 }

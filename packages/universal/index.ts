@@ -1,2 +1,2 @@
-export { View } from './view'
-export { Text } from './text'
+export { View } from "./view";
+export { Text } from "./text";

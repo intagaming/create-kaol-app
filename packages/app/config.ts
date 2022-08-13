@@ -1,19 +1,19 @@
-import Constants from 'expo-constants'
-import { channel, releaseChannel } from 'expo-updates'
+import Constants from "expo-constants";
+import { channel, releaseChannel } from "expo-updates";
 
 export const allowedChannels = <const>[
-  'development',
-  'preview',
-  'staging',
-  'production',
-]
-export type UpdateChannel = typeof allowedChannels[number]
+  "development",
+  "preview",
+  "staging",
+  "production",
+];
+export type UpdateChannel = typeof allowedChannels[number];
 
 interface IConfig {
-  apiUrl: string
+  apiUrl: string;
 }
 
-const localhost = Constants.manifest?.debuggerHost?.split(':').shift()
+const localhost = Constants.manifest?.debuggerHost?.split(":").shift();
 
 const enviromentConfigs: { [key in UpdateChannel]: IConfig } = {
   development: {
@@ -23,34 +23,34 @@ const enviromentConfigs: { [key in UpdateChannel]: IConfig } = {
     apiUrl: `http://${localhost}:4000/api/trpc`,
   },
   staging: {
-    apiUrl: 'https://staging-kaol.vercel.app/api/trpc',
+    apiUrl: "https://staging-kaol.vercel.app/api/trpc",
   },
   production: {
-    apiUrl: 'https://kaol.vercel.app/api/trpc',
+    apiUrl: "https://kaol.vercel.app/api/trpc",
   },
-}
+};
 
 export const getCurrentChannel = (): UpdateChannel => {
-  console.info('CURRENT CHANNEL: ', channel)
+  console.info("CURRENT CHANNEL: ", channel);
 
   const inAllowedChannels = (selectedChannel: string) =>
-    (allowedChannels as ReadonlyArray<string>).includes(selectedChannel)
+    (allowedChannels as ReadonlyArray<string>).includes(selectedChannel);
 
-  if (releaseChannel !== 'default') {
+  if (releaseChannel !== "default") {
     if (inAllowedChannels(releaseChannel)) {
-      return releaseChannel as UpdateChannel
-    } else return 'development'
+      return releaseChannel as UpdateChannel;
+    } else return "development";
   }
 
   if (channel) {
     if (inAllowedChannels(channel)) {
-      return channel as UpdateChannel
-    } else return 'development'
+      return channel as UpdateChannel;
+    } else return "development";
   }
 
-  return 'development' as UpdateChannel
-}
+  return "development" as UpdateChannel;
+};
 
-const Config = enviromentConfigs[getCurrentChannel()]
+const Config = enviromentConfigs[getCurrentChannel()];
 
-export default Config
+export default Config;

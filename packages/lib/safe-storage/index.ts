@@ -1,3 +1,3 @@
-import { default as SafeStorage } from './SafeStorage'
+import { default as SafeStorage } from "./SafeStorage";
 
-export default SafeStorage
+export default SafeStorage;

@@ -1,1 +1,1 @@
-export * from './GoBack'
+export * from "./GoBack";

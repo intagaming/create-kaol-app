@@ -5,5 +5,5 @@
 export const NavigationProvider = ({
   children,
 }: {
-  children: React.ReactElement
-}) => <>{children}</>
+  children: React.ReactElement;
+}) => <>{children}</>;

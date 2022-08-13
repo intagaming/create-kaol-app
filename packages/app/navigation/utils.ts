@@ -1,4 +1,4 @@
-import { AddKeyNameAsValueInObjectKeys, RouteShape } from './types'
+import { AddKeyNameAsValueInObjectKeys, RouteShape } from "./types";
 
 export const createRoutes = (routes: RouteShape) => {
   return Object.entries(routes).reduce(
@@ -10,5 +10,5 @@ export const createRoutes = (routes: RouteShape) => {
       },
     }),
     {} as AddKeyNameAsValueInObjectKeys<RouteShape>
-  )
-}
+  );
+};

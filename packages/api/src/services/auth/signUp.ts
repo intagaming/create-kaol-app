@@ -1,32 +1,32 @@
-import bcrypt from 'bcrypt'
-import { TRPCError } from '@trpc/server'
-import { prismaClient } from 'db'
-import { z } from 'zod'
+import bcrypt from "bcrypt";
+import { TRPCError } from "@trpc/server";
+import { prismaClient } from "db";
+import { z } from "zod";
 
 export const SignUpSchema = z.object({
   email: z.string().email({
-    message: 'Email is not valid',
+    message: "Email is not valid",
   }),
   password: z.string().min(8, {
-    message: 'Password must be at least 8 characters long',
+    message: "Password must be at least 8 characters long",
   }),
-})
+});
 
-type SignupSchemaType = z.infer<typeof SignUpSchema>
+type SignupSchemaType = z.infer<typeof SignUpSchema>;
 
 const signup = async ({ email, password }: SignupSchemaType) => {
-  const hashedPassword = await bcrypt.hash(password, 10)
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const existingEmail = await prismaClient.user.findUnique({
     where: {
       email,
     },
-  })
+  });
   if (existingEmail) {
     throw new TRPCError({
-      message: 'The email is already in use',
-      code: 'BAD_REQUEST',
-    })
+      message: "The email is already in use",
+      code: "BAD_REQUEST",
+    });
   }
 
   const user = await prismaClient.user.create({
@@ -34,9 +34,9 @@ const signup = async ({ email, password }: SignupSchemaType) => {
       email,
       hashedPassword,
     },
-  })
+  });
 
-  return user
-}
+  return user;
+};
 
-export default signup
+export default signup;

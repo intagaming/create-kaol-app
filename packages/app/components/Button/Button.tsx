@@ -1,12 +1,12 @@
-import { StyleProp, TouchableOpacity, ViewStyle } from 'react-native'
-import { Text } from 'universal'
-import { styled, tw } from 'universal/tailwind'
+import { StyleProp, TouchableOpacity, ViewStyle } from "react-native";
+import { Text } from "universal";
+import { styled, tw } from "universal/tailwind";
 
 export type ButtonProps = {
-  children: React.ReactNode
-  isLoading?: boolean
-  textStyle?: StyleProp<ViewStyle>
-} & React.ComponentProps<typeof TouchableOpacity>
+  children: React.ReactNode;
+  isLoading?: boolean;
+  textStyle?: StyleProp<ViewStyle>;
+} & React.ComponentProps<typeof TouchableOpacity>;
 
 export const Button = styled(
   ({ children, isLoading, style, textStyle, ...props }: ButtonProps) => {
@@ -21,6 +21,6 @@ export const Button = styled(
           <Text style={textStyle}>{children}</Text>
         )}
       </TouchableOpacity>
-    )
+    );
   }
-)
+);

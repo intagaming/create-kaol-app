@@ -1,6 +1,6 @@
-import { User } from 'db'
-import { prisma } from './client'
-import { faker } from '@faker-js/faker'
+import { User } from "db";
+import { prisma } from "./client";
+import { faker } from "@faker-js/faker";
 
 export const createPosts = (users: User[]) => {
   return Promise.all(
@@ -11,8 +11,8 @@ export const createPosts = (users: User[]) => {
           content: faker.lorem.lines(),
           authorId: user.id,
         },
-      })
-      return post
+      });
+      return post;
     })
-  )
-}
+  );
+};

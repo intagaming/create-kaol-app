@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect } from 'react'
-import { AuthInterface } from './types'
+import React, { createContext, useContext, useEffect } from "react";
+import { AuthInterface } from "./types";
 import {
   useDecodedToken,
   useGetMe,
@@ -7,34 +7,34 @@ import {
   useSessionToken,
   useSignIn,
   useSignUp,
-} from './hooks'
+} from "./hooks";
 
-const AuthContext = createContext({} as AuthInterface)
+const AuthContext = createContext({} as AuthInterface);
 
 export const AuthProvider = ({
   children,
-  initialToken: initialToken = '',
+  initialToken: initialToken = "",
 }: {
-  children: JSX.Element
-  initialToken?: string
+  children: JSX.Element;
+  initialToken?: string;
 }) => {
-  const [sessionToken, setSessionToken] = useSessionToken(initialToken)
-  const decodedToken = useDecodedToken(sessionToken)
+  const [sessionToken, setSessionToken] = useSessionToken(initialToken);
+  const decodedToken = useDecodedToken(sessionToken);
 
-  const { data: user } = useGetMe(sessionToken)
+  const { data: user } = useGetMe(sessionToken);
   const {
     mutate: signIn,
     isLoading: signInLoading,
     error: signInError,
-  } = useSignIn(setSessionToken)
+  } = useSignIn(setSessionToken);
   const {
     mutate: signUp,
     isLoading: signUpLoading,
     error: signUpError,
-  } = useSignUp(setSessionToken)
-  const logout = useLogout(setSessionToken)
+  } = useSignUp(setSessionToken);
+  const logout = useLogout(setSessionToken);
 
-  const errorMessage = signUpError?.message || signInError?.message
+  const errorMessage = signUpError?.message || signInError?.message;
 
   return (
     <AuthContext.Provider
@@ -52,27 +52,27 @@ export const AuthProvider = ({
     >
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
 export const useAuth = () => {
-  const authContext = useContext(AuthContext)
+  const authContext = useContext(AuthContext);
   if (!authContext) {
-    throw new Error('Remember to wrap useAuth inside an AuthProvider')
+    throw new Error("Remember to wrap useAuth inside an AuthProvider");
   }
-  return authContext
-}
+  return authContext;
+};
 
 export const AuthenticatedOnly = ({ children }: { children: JSX.Element }) => {
-  const { isAuthenticated } = useAuth()
-  return isAuthenticated ? <>{children}</> : null
-}
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : null;
+};
 
 export const UnauthenticatedOnly = ({
   children,
 }: {
-  children: JSX.Element
+  children: JSX.Element;
 }) => {
-  const { isAuthenticated } = useAuth()
-  return !isAuthenticated ? children : null
-}
+  const { isAuthenticated } = useAuth();
+  return !isAuthenticated ? children : null;
+};

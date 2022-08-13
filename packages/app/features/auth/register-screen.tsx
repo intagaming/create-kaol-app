@@ -1,27 +1,27 @@
-import { useAuth } from 'app/provider/AuthProvider'
-import { TextLink } from 'solito/link'
-import { Button } from 'app/components/Button'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'solito/router'
-import { Text, View } from 'universal'
-import { colors, styled, tw } from 'universal/tailwind'
-import { ScrollView, TextInput } from 'react-native'
-import { routes } from 'app/navigation/routePaths'
+import { useAuth } from "app/provider/AuthProvider";
+import { TextLink } from "solito/link";
+import { Button } from "app/components/Button";
+import { useEffect, useState } from "react";
+import { useRouter } from "solito/router";
+import { Text, View } from "universal";
+import { colors, styled, tw } from "universal/tailwind";
+import { ScrollView, TextInput } from "react-native";
+import { routes } from "app/navigation/routePaths";
 
-const Card = styled(View, 'bg-white shadow-sm mb-4 p-6 border max-w-lg w-full')
+const Card = styled(View, "bg-white shadow-sm mb-4 p-6 border max-w-lg w-full");
 
 export function RegisterScreen() {
-  const router = useRouter()
-  const { isAuthenticated, signUp, signUpLoading, errorMessage } = useAuth()
+  const router = useRouter();
+  const { isAuthenticated, signUp, signUpLoading, errorMessage } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace(routes.home.getPath())
+      router.replace(routes.home.getPath());
     }
-  }, [router, isAuthenticated])
+  }, [router, isAuthenticated]);
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <ScrollView>
@@ -59,7 +59,7 @@ export function RegisterScreen() {
               disabled={signUpLoading}
               isLoading={signUpLoading}
               onPress={() => {
-                signUp({ email, password })
+                signUp({ email, password });
               }}
             >
               Signup
@@ -81,5 +81,5 @@ export function RegisterScreen() {
         </Card>
       </View>
     </ScrollView>
-  )
+  );
 }

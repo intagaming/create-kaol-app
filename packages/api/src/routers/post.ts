@@ -1,17 +1,17 @@
-import { createRouter, protectedRoute } from './context'
-import { z } from 'zod'
+import { createRouter, protectedRoute } from "./context";
+import { z } from "zod";
 
 export const postRouter = protectedRoute
-  .query('get-all', {
+  .query("get-all", {
     async resolve({ ctx }) {
       return await ctx.prisma.post.findMany({
         include: {
           author: true,
         },
-      })
+      });
     },
   })
-  .query('get-by-id', {
+  .query("get-by-id", {
     input: z.object({
       id: z.string().uuid(),
     }),
@@ -24,12 +24,12 @@ export const postRouter = protectedRoute
           author: true,
         },
         orderBy: {
-          title: 'asc',
+          title: "asc",
         },
-      })
+      });
     },
   })
-  .mutation('create', {
+  .mutation("create", {
     input: z.object({
       authorId: z.string(),
       title: z.string(),
@@ -42,10 +42,10 @@ export const postRouter = protectedRoute
           title: input.title,
           content: input.content,
         },
-      })
+      });
     },
   })
-  .mutation('delete', {
+  .mutation("delete", {
     input: z.object({
       id: z.string().uuid(),
     }),
@@ -54,6 +54,6 @@ export const postRouter = protectedRoute
         where: {
           id: input.id,
         },
-      })
+      });
     },
-  })
+  });
