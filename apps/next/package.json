@@ -8,8 +8,7 @@
     "dev": "npm-run-all --parallel dev:open-browser dev:server",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "vercel-build": "DATABASE_URL=$MIGRATE_DB_URL prisma generate && DATABASE_URL=$MIGRATE_DB_URL prisma migrate deploy && next build"
+    "lint": "next lint"
   },
   "dependencies": {
     "@expo/next-adapter": "^3.1.20",
