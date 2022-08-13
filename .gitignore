@@ -73,3 +73,5 @@ web-build/
 build/**
 .vercel
 .vercel/**
+
+prisma/db.sqlite
