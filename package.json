@@ -28,7 +28,7 @@
     "web": "cd apps/next && yarn dev",
     "dev:tabs": "yarn db:dev && run-s tab:web tab:native",
     "tab:native": "ttab -t 'Expo' yarn native",
-    "tab:web": "ttab -t 'NextJS' npm run web",
+    "tab:web": "ttab -t 'NextJS' yarn web",
     "build": "turbo run build",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.json",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
