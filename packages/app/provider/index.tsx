@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { APIProvider } from "./APIProvider";
 import { NavigationProvider } from "./NavigationContainer/NavigationContainer";
 
@@ -5,7 +6,7 @@ import { NavigationProvider } from "./NavigationContainer/NavigationContainer";
 // Next.js location: apps/next/pages/_app.tsx
 // Expo location: apps/expo/App.tsx
 
-export function Provider({ children }: { children: React.ReactNode }) {
+export function Provider({ children }: { children: ReactNode }) {
   return (
     <>
       <APIProvider>
