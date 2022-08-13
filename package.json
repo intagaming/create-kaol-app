@@ -15,8 +15,6 @@
     "@typescript-eslint/eslint-plugin": "^5.32.0",
     "@typescript-eslint/parser": "^5.32.0",
     "eslint": "^8.11.0",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.5.1",
     "ts-node": "^10.9.1",
@@ -42,17 +40,11 @@
     "db:migrate:dev": "yarn prisma migrate dev",
     "db:update": "yarn prisma db push && yarn prisma generate",
     "db:seed": "yarn prisma db seed",
-    "postinstall": "yarn prisma generate",
-    "prepare": "husky install"
+    "postinstall": "yarn prisma generate"
   },
   "engines": {
     "npm": ">=7.0.0",
     "node": ">=14.0.0"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,json}": [
-      "yarn format"
-    ]
   },
   "modulePathIgnorePatterns": [
     "<rootDir>[/\\\\](build|docs|node_modules|deploy|scripts|.vercel|output)[/\\\\]"
