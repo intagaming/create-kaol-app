@@ -75,3 +75,5 @@ build/**
 .vercel/**
 
 prisma/db.sqlite
+.env
+.env.local
