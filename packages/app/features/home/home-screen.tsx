@@ -6,6 +6,9 @@ import { Text, View } from "universal";
 
 export function HomeScreen() {
   const hello = trpc.useQuery(["example.hello", { text: "from Kaol" }]);
+  // const { data: secretMessage, isLoading } = trpc.useQuery([
+  //   "protected.getSecretMessage",
+  // ]);
 
   return (
     <View className="flex-1">
@@ -17,8 +20,15 @@ export function HomeScreen() {
         </Text>
 
         <Text className="items-center text-3xl font-extrabold text-center">
-          {hello.data ? <p>{hello.data.greeting}</p> : <p>Loading..</p>}
+          {hello.data ? (
+            <Text>{hello.data.greeting}</Text>
+          ) : (
+            <Text>Loading..</Text>
+          )}
+          {/* {secretMessage && <Text>{secretMessage}</Text>} */}
         </Text>
+
+        <Button onPress={() => {}}>Sign in</Button>
 
         <View className="my-8 max-w-base">
           <Text className="mb-4 text-center">
