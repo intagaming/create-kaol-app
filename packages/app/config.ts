@@ -17,10 +17,10 @@ const localhost = Constants.manifest?.debuggerHost?.split(":").shift();
 
 const enviromentConfigs: { [key in UpdateChannel]: IConfig } = {
   development: {
-    apiUrl: `http://${localhost}:4000/api/trpc`,
+    apiUrl: `http://${localhost}:3000/api/trpc`,
   },
   preview: {
-    apiUrl: `http://${localhost}:4000/api/trpc`,
+    apiUrl: `http://${localhost}:3000/api/trpc`,
   },
   staging: {
     apiUrl: "https://staging-kaol.vercel.app/api/trpc",

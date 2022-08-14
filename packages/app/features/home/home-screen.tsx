@@ -1,8 +1,12 @@
+import { Button } from "app/components/Button";
 import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
+import { trpc } from "app/utils/trpc";
 import { TextLink } from "solito/link";
 import { Text, View } from "universal";
 
 export function HomeScreen() {
+  const hello = trpc.useQuery(["example.hello", { text: "from Kaol" }]);
+
   return (
     <View className="flex-1">
       <EnvironmentStatusBar />
@@ -10,6 +14,10 @@ export function HomeScreen() {
       <View className="items-center justify-center flex-1 p-4">
         <Text className="items-center text-3xl font-extrabold text-center">
           Welcome to Kaol.
+        </Text>
+
+        <Text className="items-center text-3xl font-extrabold text-center">
+          {hello.data ? <p>{hello.data.greeting}</p> : <p>Loading..</p>}
         </Text>
 
         <View className="my-8 max-w-base">
