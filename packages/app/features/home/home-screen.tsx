@@ -1,5 +1,6 @@
 import { Button } from "app/components/Button";
 import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
+import { signIn } from "app/utils/auth/index";
 import { trpc } from "app/utils/trpc";
 import { TextLink } from "solito/link";
 import { Text, View } from "universal";
@@ -28,7 +29,7 @@ export function HomeScreen() {
           {/* {secretMessage && <Text>{secretMessage}</Text>} */}
         </Text>
 
-        <Button onPress={() => {}}>Sign in</Button>
+        <Button onPress={() => signIn("github")}>Sign in via GitHub</Button>
 
         <View className="my-8 max-w-base">
           <Text className="mb-4 text-center">
