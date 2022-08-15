@@ -10,6 +10,13 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_ID ?? "",
       clientSecret: process.env.GITHUB_SECRET ?? "",
     }),
+    {
+      ...GithubProvider({
+        clientId: process.env.EXPO_GITHUB_ID ?? "",
+        clientSecret: process.env.EXPO_GITHUB_SECRET ?? "",
+      }),
+      id: "github-expo",
+    },
   ],
 };
 

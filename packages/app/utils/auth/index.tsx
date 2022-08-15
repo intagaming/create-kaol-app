@@ -253,11 +253,12 @@ export async function signIn<
    */
 
   const proxyRedirectUri = AuthSession.makeRedirectUri({ useProxy: true }); // https://auth.expo.io
-  // const redirectUri = AuthSession.makeRedirectUri({ useProxy: false }); // Some URL which we don't know beforehand
+  console.log("proxyRedirectUri", proxyRedirectUri);
+  const redirectUri = AuthSession.makeRedirectUri({ useProxy: false }); // Some URL which we don't know beforehand
 
   // This corresponds to useLoadedAuthRequest
   const request = new AuthSession.AuthRequest({
-    clientId: "21ab7852fae3a4ff0e67", // TODO: move this to env
+    clientId: "3fbd7538a8f71f47cba1", // TODO: move this to env
     scopes: ["identity"],
     redirectUri: proxyRedirectUri,
   });
@@ -265,27 +266,51 @@ export async function signIn<
     authorizationEndpoint: "https://github.com/login/oauth/authorize",
     tokenEndpoint: "https://github.com/login/oauth/access_token",
     revocationEndpoint:
-      "https://github.com/settings/connections/applications/<CLIENT_ID>",
+      "https://github.com/settings/connections/applications/3fbd7538a8f71f47cba1",
   };
   await request.makeAuthUrlAsync(discovery);
 
   // useAuthRequestResult
-  const result = await request.promptAsync(discovery);
+  const result = await request.promptAsync(discovery, { useProxy: true });
 
-  // TODO: the result is AuthSessionResult, which has the access_token. Do sth.
-  console.log(result);
+  console.log("result", result);
 
-  // This below is Supabase for reference
-  // const response = await AuthSession.startAsync({
-  //   authUrl: `${supabaseConfig.url}/auth/v1/authorize?provider=${provider}&redirect_to=${proxyRedirectUri}`,
-  //   returnUrl: redirectUri,
-  // });
+  if (result.type === "success") {
+    // TODO: send code & state to the NextAuth callback
+    const url = `${apiBaseUrl(__NEXTAUTH)}/callback/github-expo?code=${
+      result.params.code
+    }&state=${result.params.state}`;
+    console.log(url, request.codeVerifier);
+    try {
+      // const res = await fetch(url, {
+      //   headers: {
+      //     cookie: `${}`
+      //   }
+      // });
+      // console.log(
+      //   url,
+      //   "status",
+      //   res.status,
+      //   res.body,
+      //   "response headers",
+      //   res.headers
+      // );
+    } catch (e) {
+      console.log(e);
+    }
 
-  // if (response.type !== "success") return;
+    // This below is Supabase for reference
+    // const response = await AuthSession.startAsync({
+    //   authUrl: `${supabaseConfig.url}/auth/v1/authorize?provider=${provider}&redirect_to=${proxyRedirectUri}`,
+    //   returnUrl: redirectUri,
+    // });
 
-  // await supabase.auth.signIn({
-  //   refreshToken: response.params.refresh_token,
-  // });
+    // if (response.type !== "success") return;
+
+    // await supabase.auth.signIn({
+    //   refreshToken: response.params.refresh_token,
+    // });
+  }
 }
 
 /**
