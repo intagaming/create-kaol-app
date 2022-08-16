@@ -35,8 +35,9 @@ import type {
   BuiltInProviderType,
   RedirectableProviderType,
 } from "next-auth/providers";
-import { Platform } from "react-native";
 
+import { createTRPCClient } from "@trpc/client";
+import { AppRouter } from "api/src";
 import * as AuthSession from "expo-auth-session";
 import Constants from "expo-constants";
 
@@ -259,7 +260,7 @@ export async function signIn<
   // This corresponds to useLoadedAuthRequest
   const request = new AuthSession.AuthRequest({
     clientId: "3fbd7538a8f71f47cba1", // TODO: move this to env
-    scopes: ["identity"],
+    scopes: ["read:user", "user:email", "openid"],
     redirectUri: proxyRedirectUri,
   });
   const discovery = {
@@ -276,40 +277,12 @@ export async function signIn<
   console.log("result", result);
 
   if (result.type === "success") {
-    // TODO: send code & state to the NextAuth callback
-    const url = `${apiBaseUrl(__NEXTAUTH)}/callback/github-expo?code=${
-      result.params.code
-    }&state=${result.params.state}`;
-    console.log(url, request.codeVerifier);
-    try {
-      // const res = await fetch(url, {
-      //   headers: {
-      //     cookie: `${}`
-      //   }
-      // });
-      // console.log(
-      //   url,
-      //   "status",
-      //   res.status,
-      //   res.body,
-      //   "response headers",
-      //   res.headers
-      // );
-    } catch (e) {
-      console.log(e);
-    }
-
-    // This below is Supabase for reference
-    // const response = await AuthSession.startAsync({
-    //   authUrl: `${supabaseConfig.url}/auth/v1/authorize?provider=${provider}&redirect_to=${proxyRedirectUri}`,
-    //   returnUrl: redirectUri,
-    // });
-
-    // if (response.type !== "success") return;
-
-    // await supabase.auth.signIn({
-    //   refreshToken: response.params.refresh_token,
-    // });
+    const trpcClient = createTRPCClient<AppRouter>({
+      url: "http://localhost:3000/api/trpc",
+    });
+    await trpcClient.query("auth.signIn", {
+      code: result.params.code as string,
+    });
   }
 }
 
