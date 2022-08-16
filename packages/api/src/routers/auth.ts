@@ -146,11 +146,11 @@ export const authRouter = createRouter()
 
       // Callback
       const callbackRes = await fetch(
-        `http://localhost:3000/api/auth/callback/github-expo?state=${input.state}&code=${input.code}&callbackUrl=${input.callbackUrl}`,
+        `http://localhost:3000/api/auth/callback/github-expo?state=${input.state}&code=${input.code}`,
         {
           redirect: "manual",
           headers: {
-            Cookie: `${cookies.csrfToken.name}=${input.csrfTokenCookie}; ${cookies.callbackUrl.name}=${input.callbackUrl}; ${cookies.state.name}=${input.stateEncrypted}; ${cookies.pkceCodeVerifier.name}=${input.codeVerifier}`,
+            Cookie: `${cookies.csrfToken.name}=${input.csrfTokenCookie}; ${cookies.state.name}=${input.stateEncrypted}; ${cookies.pkceCodeVerifier.name}=${input.codeVerifier}`,
           },
         }
       );
