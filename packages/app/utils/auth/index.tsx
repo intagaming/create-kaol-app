@@ -262,6 +262,7 @@ export async function signIn<
     clientId: "3fbd7538a8f71f47cba1", // TODO: move this to env
     scopes: ["read:user", "user:email", "openid"],
     redirectUri: proxyRedirectUri,
+    codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
   });
   const discovery = {
     authorizationEndpoint: "https://github.com/login/oauth/authorize",
@@ -269,19 +270,40 @@ export async function signIn<
     revocationEndpoint:
       "https://github.com/settings/connections/applications/3fbd7538a8f71f47cba1",
   };
-  await request.makeAuthUrlAsync(discovery);
 
-  // useAuthRequestResult
+  const trpcClient = createTRPCClient<AppRouter>({
+    url: "http://localhost:3000/api/trpc",
+  });
+  const {
+    state,
+    codeChallenge,
+    csrfTokenCookie,
+    stateEncrypted,
+    codeVerifier,
+  } = await trpcClient.query("auth.signIn", {
+    // code: result.params.code as string,
+    proxyRedirectUri,
+  });
+  // request.url = authorizationUrl;
+  console.log("state", state);
+  request.state = state;
+  request.codeChallenge = codeChallenge;
+  await request.makeAuthUrlAsync(discovery);
+  // console.log("debug 2", request.url, request.redirectUri);
+
+  // // useAuthRequestResult
   const result = await request.promptAsync(discovery, { useProxy: true });
 
   console.log("result", result);
 
   if (result.type === "success") {
-    const trpcClient = createTRPCClient<AppRouter>({
-      url: "http://localhost:3000/api/trpc",
-    });
-    await trpcClient.query("auth.signIn", {
+    await trpcClient.query("auth.callback", {
       code: result.params.code as string,
+      csrfTokenCookie,
+      state,
+      stateEncrypted,
+      callbackUrl: proxyRedirectUri,
+      codeVerifier,
     });
   }
 }
