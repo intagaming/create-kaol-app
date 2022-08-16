@@ -80,7 +80,6 @@ export const authRouter = createRouter()
         cookies.csrfToken.name,
         csrfTokenRes.headers
       ) as string;
-      // console.log("csrfTokenSetCookie", csrfTokenSetCookie);
 
       // Get authorizationUrl
       const callbackUrl = input.proxyRedirectUri;
@@ -97,18 +96,15 @@ export const authRouter = createRouter()
         }
       );
 
-      // console.log(signInRes.headers);
       const authorizationUrl = signInRes.headers.get("location") as string;
       const url = new URL(authorizationUrl);
       const params = new URLSearchParams(url.search);
 
       // state
-      // console.log("signInRes headers", signInRes.headers);
       const stateEncrypted = getCookieFromHeader(
         cookies.state.name,
         signInRes.headers
       ) as string;
-      // console.log("stateEncrypted", cookies.state.name, stateEncrypted);
       const state = params.get("state") as string;
 
       // pkce code verifier
@@ -118,14 +114,10 @@ export const authRouter = createRouter()
         signInRes.headers
       ) as string;
 
-      console.log("authorizationUrl", authorizationUrl);
-
       return {
         state,
         stateEncrypted,
-        csrfToken,
         csrfTokenCookie,
-        authorizationUrl,
         codeVerifier,
         codeChallenge,
       };
@@ -141,7 +133,6 @@ export const authRouter = createRouter()
       codeVerifier: z.string(),
     }),
     resolve: async ({ input }) => {
-      console.log("callback inputs", input);
       const cookies = defaultCookies(false);
 
       // Callback
@@ -154,7 +145,10 @@ export const authRouter = createRouter()
           },
         }
       );
-      console.log("callback", callbackRes.status, callbackRes.headers);
-      return {};
+      const sessionToken = getCookieFromHeader(
+        cookies.sessionToken.name,
+        callbackRes.headers
+      );
+      return { sessionToken };
     },
   });

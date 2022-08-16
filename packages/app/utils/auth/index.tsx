@@ -212,8 +212,6 @@ export async function signIn<
 ): Promise<
   P extends RedirectableProviderType ? SignInResponse | undefined : undefined
 > {
-  const { callbackUrl, redirect = true } = options ?? {};
-
   const baseUrl = apiBaseUrl(__NEXTAUTH);
   console.log("baseUrl", baseUrl, __NEXTAUTH);
   const providers = await getProviders();
@@ -236,26 +234,8 @@ export async function signIn<
 
   const isCredentials = providers[provider].type === "credentials";
   const isEmail = providers[provider].type === "email";
-  const isSupportingReturn = isCredentials || isEmail;
-
-  /**
-   * Here's where next-auth/expo differs from next-auth/react. On Expo we don't
-   * have URLs. So here's what we do instead:
-   * 1. If we're on the web, we use the browser's `window.location.href`
-   * 2. If we're on native, we initiate a Expo Auth login sequence.
-   */
-  /**
-   * Read this:
-   * https://docs.expo.dev/versions/latest/sdk/auth-session/#what--authexpoio--does-for-you
-   * In the `authUrl` we don't want the provider to know our varied URL. The
-   * auth.expo.io flow tries to hide the varied URL from the provider. So,
-   * auth.expo.io is the one who will know our varied URL, and the provider
-   * will only know https://auth.expo.io/@username/app-slug.
-   */
 
   const proxyRedirectUri = AuthSession.makeRedirectUri({ useProxy: true }); // https://auth.expo.io
-  console.log("proxyRedirectUri", proxyRedirectUri);
-  const redirectUri = AuthSession.makeRedirectUri({ useProxy: false }); // Some URL which we don't know beforehand
 
   // This corresponds to useLoadedAuthRequest
   const request = new AuthSession.AuthRequest({
@@ -281,23 +261,17 @@ export async function signIn<
     stateEncrypted,
     codeVerifier,
   } = await trpcClient.query("auth.signIn", {
-    // code: result.params.code as string,
     proxyRedirectUri,
   });
-  // request.url = authorizationUrl;
-  console.log("state", state);
   request.state = state;
   request.codeChallenge = codeChallenge;
   await request.makeAuthUrlAsync(discovery);
-  // console.log("debug 2", request.url, request.redirectUri);
 
-  // // useAuthRequestResult
+  // useAuthRequestResult
   const result = await request.promptAsync(discovery, { useProxy: true });
 
-  console.log("result", result);
-
   if (result.type === "success") {
-    await trpcClient.query("auth.callback", {
+    const { sessionToken } = await trpcClient.query("auth.callback", {
       code: result.params.code as string,
       csrfTokenCookie,
       state,
@@ -305,6 +279,7 @@ export async function signIn<
       callbackUrl: proxyRedirectUri,
       codeVerifier,
     });
+    console.log("sessionToken received in Client", sessionToken);
   }
 }
 
