@@ -14,7 +14,6 @@ export const createContext = async ({
   res,
 }: trpcNext.CreateNextContextOptions) => {
   const requestId = crypto.randomBytes(10).toString("hex");
-  console.log("creating context", req.headers);
   const authHeader = req.headers.authorization;
   if (authHeader) {
     const sessionToken = authHeader.split(" ")[1];

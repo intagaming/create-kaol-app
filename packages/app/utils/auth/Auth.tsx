@@ -68,7 +68,6 @@ export async function fetchData<T = any>(
 
   const url = `${apiBaseUrl(__NEXTAUTH)}/${path}`;
   const sessionToken = await SafeStorage.get("sessionToken");
-  console.log("fetchData", url, sessionToken);
   try {
     let csrfToken = await SafeStorage.get("csrf");
     if (!csrfToken) {
@@ -80,7 +79,6 @@ export async function fetchData<T = any>(
       csrfToken,
       sessionToken,
     });
-    console.log("res", res);
     return res;
   } catch (error) {
     logger.error("CLIENT_FETCH_ERROR", { error: error as Error, url });
@@ -178,7 +176,6 @@ export async function getSession(params?: GetSessionParams) {
     logger,
     params
   );
-  console.log("getSession", session);
   // if (params?.broadcast ?? true) {
   //   broadcast.emit("session", { trigger: "getSession" });
   // }
@@ -202,7 +199,6 @@ export async function getCsrfToken(params?: CtxOrReq) {
   });
   const { csrfToken, csrfTokenCookie } = await trpcClient.query("auth.csrf");
 
-  console.log("setting", csrfTokenCookie);
   await SafeStorage.set("csrf", csrfTokenCookie);
 
   return {
@@ -245,7 +241,6 @@ export async function signIn<
   P extends RedirectableProviderType ? SignInResponse | undefined : undefined
 > {
   const baseUrl = apiBaseUrl(__NEXTAUTH);
-  console.log("baseUrl", baseUrl, __NEXTAUTH);
   const providers = await getProviders();
 
   if (!providers) {
@@ -390,7 +385,6 @@ export function SessionProvider(props: SessionProviderProps) {
 
   React.useEffect(() => {
     __NEXTAUTH._getSession = async ({ event } = {}) => {
-      console.log("getSession event", event);
       try {
         const storageEvent = event === "storage";
         // We should always update if we don't have a client session yet
