@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { prisma } from "db";
 import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "../../../../apps/next/pages/api/auth/[...nextauth]";
+import { defaultCookies } from "./auth";
 
 export const createRouter = () => trpc.router<Context>();
 
@@ -13,6 +14,31 @@ export const createContext = async ({
   res,
 }: trpcNext.CreateNextContextOptions) => {
   const requestId = crypto.randomBytes(10).toString("hex");
+  console.log("creating context", req.headers);
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const sessionToken = authHeader.split(" ")[1];
+    if (sessionToken) {
+      const cookies = defaultCookies(false);
+
+      // Modify session-token
+      const reqCookie = req.headers.cookie ?? "";
+      const parsedCookies = reqCookie.split("; ").reduce((acc, cookie) => {
+        const [key, value] = cookie.split("=");
+        acc[key as string] = value as string;
+        return acc;
+      }, {} as { [key: string]: string });
+      parsedCookies[cookies.sessionToken.name] = sessionToken;
+      const newCookie = Object.entries(parsedCookies)
+        .reduce((acc, [key, value]) => {
+          acc.push(`${key}=${value}`);
+          return acc;
+        }, [] as string[])
+        .join("; ");
+
+      req.headers.cookie = newCookie;
+    }
+  }
   const session = await unstable_getServerSession(req, res, authOptions);
 
   return {

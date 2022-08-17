@@ -7,9 +7,7 @@ import { Text, View } from "universal";
 
 export function HomeScreen() {
   const hello = trpc.useQuery(["example.hello", { text: "from Kaol" }]);
-  // const { data: secretMessage, isLoading } = trpc.useQuery([
-  //   "protected.getSecretMessage",
-  // ]);
+  const { data: secretMessage } = trpc.useQuery(["protected.getSecretMessage"]);
   const { data, status } = useSession();
 
   return (
@@ -27,12 +25,19 @@ export function HomeScreen() {
           ) : (
             <Text>Loading..</Text>
           )}
-          {/* {secretMessage && <Text>{secretMessage}</Text>} */}
         </Text>
 
         <Text className="items-center text-3xl font-extrabold text-center">
-          <Text>Auth status: {status}</Text>
+          <Text>
+            Auth status: {status}. You are {data?.user?.name}.
+          </Text>
         </Text>
+
+        {secretMessage && (
+          <Text className="items-center text-3xl font-extrabold text-center">
+            <Text>Secret message: {secretMessage}</Text>
+          </Text>
+        )}
 
         <Button onPress={() => signIn("github")}>Sign in via GitHub</Button>
 

@@ -1,8 +1,8 @@
+import Config from "app/config";
 import { trpc } from "app/utils/trpc";
+import SafeStorage from "lib/safe-storage";
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import SafeStorage from "lib/safe-storage";
-import Config from "app/config";
 
 const createTrpcClient = () => {
   return trpc.createClient({
