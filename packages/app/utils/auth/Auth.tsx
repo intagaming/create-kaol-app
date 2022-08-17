@@ -10,14 +10,12 @@
 
 import { Session } from "next-auth";
 import {
-  apiBaseUrl,
   BroadcastChannel,
   CtxOrReq,
-  fetchData,
   NextAuthClientConfig,
   now,
 } from "next-auth/client/_utils";
-import _logger, { proxyLogger } from "next-auth/utils/logger";
+import _logger, { LoggerInstance, proxyLogger } from "next-auth/utils/logger";
 import parseUrl from "next-auth/utils/parse-url";
 import * as React from "react";
 
@@ -37,12 +35,67 @@ import type {
   BuiltInProviderType,
   RedirectableProviderType,
 } from "next-auth/providers";
-import { Platform } from "react-native";
 
+import { createTRPCClient } from "@trpc/client";
+import { AppRouter } from "api/src";
 import * as AuthSession from "expo-auth-session";
+import Constants from "expo-constants";
+import SafeStorage from "../safe-storage";
+import { useFocusEffect } from "@react-navigation/native";
+import EventEmitter from "events";
+import { defaultCookies } from "next-auth/core/lib/cookie";
 
 export * from "./types";
 
+export const getCookieFromHeader = (name: string, headers: Headers) => {
+  return headers
+    .get("set-cookie")
+    ?.split(", ")
+    .filter((s) => s.startsWith(`${name}=`))[0]
+    ?.split("=")[1]
+    ?.split(";")[0];
+};
+
+export async function fetchData<T = any>(
+  path: string,
+  __NEXTAUTH: NextAuthClientConfig,
+  logger: LoggerInstance,
+  { ctx, req = ctx?.req }: CtxOrReq = {}
+): Promise<T | null> {
+  const trpcClient = createTRPCClient<AppRouter>({
+    url: "http://localhost:3000/api/trpc",
+  });
+
+  const url = `${apiBaseUrl(__NEXTAUTH)}/${path}`;
+  const sessionToken = await SafeStorage.get("sessionToken");
+  console.log("fetchData", url, sessionToken);
+  try {
+    let csrfToken = await SafeStorage.get("csrf");
+    if (!csrfToken) {
+      csrfToken = (await getCsrfToken())?.csrfTokenCookie ?? null;
+    }
+
+    const res = await trpcClient.query("auth.proxy", {
+      path,
+      csrfToken,
+      sessionToken,
+    });
+    console.log("res", res);
+    return res;
+  } catch (error) {
+    logger.error("CLIENT_FETCH_ERROR", { error: error as Error, url });
+    return null;
+  }
+}
+
+export function apiBaseUrl(__NEXTAUTH: NextAuthClientConfig) {
+  return `${__NEXTAUTH.baseUrlServer}${__NEXTAUTH.basePathServer}`;
+}
+
+const nextAuthUrl = Constants.manifest?.extra?.nextAuthUrl;
+console.log("nextAuthUrl", nextAuthUrl);
+
+// const parseUrl = (a: any) => ({ origin: "", path: "" });
 // This behaviour mirrors the default behaviour for getting the site name that
 // happens server side in server/index.js
 // 1. An empty value is legitimate when the code is being invoked client side as
@@ -50,23 +103,16 @@ export * from "./types";
 // 2. When invoked server side the value is picked up from an environment
 //    variable and defaults to 'http://localhost:3000'.
 const __NEXTAUTH: NextAuthClientConfig = {
-  baseUrl: parseUrl(process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL).origin,
-  basePath: parseUrl(process.env.NEXTAUTH_URL).path,
-  baseUrlServer: parseUrl(
-    process.env.NEXTAUTH_URL_INTERNAL ??
-      process.env.NEXTAUTH_URL ??
-      process.env.VERCEL_URL
-  ).origin,
-  basePathServer: parseUrl(
-    process.env.NEXTAUTH_URL_INTERNAL ?? process.env.NEXTAUTH_URL
-  ).path,
+  baseUrl: parseUrl(nextAuthUrl).origin,
+  basePath: parseUrl(nextAuthUrl).path,
+  baseUrlServer: parseUrl(nextAuthUrl).origin,
+  basePathServer: parseUrl(nextAuthUrl).path,
   _lastSync: 0,
   _session: undefined,
   _getSession: () => {},
 };
 
-const broadcast = BroadcastChannel();
-
+const broadcast = new EventEmitter();
 const logger = proxyLogger(_logger, __NEXTAUTH.basePath);
 
 export type SessionContextValue<R extends boolean = false> = R extends true
@@ -132,8 +178,9 @@ export async function getSession(params?: GetSessionParams) {
     logger,
     params
   );
+  console.log("getSession", session);
   if (params?.broadcast ?? true) {
-    broadcast.post({ event: "session", data: { trigger: "getSession" } });
+    broadcast.emit("session", { trigger: "getSession" });
   }
   return session;
 }
@@ -147,13 +194,21 @@ export async function getSession(params?: GetSessionParams) {
  * [Documentation](https://next-auth.js.org/getting-started/client#getcsrftoken)
  */
 export async function getCsrfToken(params?: CtxOrReq) {
-  const response = await fetchData<{ csrfToken: string }>(
-    "csrf",
-    __NEXTAUTH,
-    logger,
-    params
-  );
-  return response?.csrfToken;
+  // type CsrfResponse = { csrfToken: string };
+  // const response = await fetchData("csrf", __NEXTAUTH, logger, params);
+
+  const trpcClient = createTRPCClient<AppRouter>({
+    url: "http://localhost:3000/api/trpc",
+  });
+  const { csrfToken, csrfTokenCookie } = await trpcClient.query("auth.csrf");
+
+  console.log("setting", csrfTokenCookie);
+  await SafeStorage.set("csrf", csrfTokenCookie);
+
+  return {
+    csrfToken,
+    csrfTokenCookie,
+  };
 }
 
 /**
@@ -179,7 +234,7 @@ export async function getProviders() {
 export async function signIn<
   P extends RedirectableProviderType | undefined = undefined
 >(
-  provider?: LiteralUnion<
+  provider: LiteralUnion<
     P extends RedirectableProviderType
       ? P | BuiltInProviderType
       : BuiltInProviderType
@@ -189,14 +244,14 @@ export async function signIn<
 ): Promise<
   P extends RedirectableProviderType ? SignInResponse | undefined : undefined
 > {
-  const { callbackUrl, redirect = true } = options ?? {};
-
   const baseUrl = apiBaseUrl(__NEXTAUTH);
+  console.log("baseUrl", baseUrl, __NEXTAUTH);
   const providers = await getProviders();
 
   if (!providers) {
     // TODO:
     // window.location.href = `${baseUrl}/error`;
+    console.log("no providers");
     return;
   }
 
@@ -205,111 +260,60 @@ export async function signIn<
     // window.location.href = `${baseUrl}/signin?${new URLSearchParams({
     //   callbackUrl,
     // })}`;
+    console.log("provider not valid", provider);
     return;
   }
 
   const isCredentials = providers[provider].type === "credentials";
   const isEmail = providers[provider].type === "email";
-  const isSupportingReturn = isCredentials || isEmail;
 
-  /**
-   * Here's where next-auth/expo differs from next-auth/react. On Expo we don't
-   * have URLs. So here's what we do instead:
-   * 1. If we're on the web, we use the browser's `window.location.href`
-   * 2. If we're on native, we initiate a Expo Auth login sequence.
-   */
-  switch (Platform.OS) {
-    case "web":
-      const signInUrl = `${baseUrl}/${
-        isCredentials ? "callback" : "signin"
-      }/${provider}`;
+  const proxyRedirectUri = AuthSession.makeRedirectUri({ useProxy: true }); // https://auth.expo.io
 
-      const _signInUrl = `${signInUrl}?${new URLSearchParams(
-        authorizationParams
-      )}`;
+  // This corresponds to useLoadedAuthRequest
+  const request = new AuthSession.AuthRequest({
+    clientId: "3fbd7538a8f71f47cba1", // TODO: move this to env
+    scopes: ["read:user", "user:email", "openid"],
+    redirectUri: proxyRedirectUri,
+    codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
+  });
+  const discovery = {
+    authorizationEndpoint: "https://github.com/login/oauth/authorize",
+    tokenEndpoint: "https://github.com/login/oauth/access_token",
+    revocationEndpoint:
+      "https://github.com/settings/connections/applications/3fbd7538a8f71f47cba1",
+  };
 
-      const res = await fetch(_signInUrl, {
-        method: "post",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        // @ts-expect-error
-        body: new URLSearchParams({
-          ...options,
-          csrfToken: await getCsrfToken(),
-          callbackUrl,
-          json: true,
-        }),
-      });
+  const trpcClient = createTRPCClient<AppRouter>({
+    url: "http://localhost:3000/api/trpc",
+  });
+  const {
+    state,
+    codeChallenge,
+    csrfTokenCookie,
+    stateEncrypted,
+    codeVerifier,
+  } = await trpcClient.query("auth.signIn", {
+    proxyRedirectUri,
+  });
+  request.state = state;
+  request.codeChallenge = codeChallenge;
+  await request.makeAuthUrlAsync(discovery);
 
-      const data = await res.json();
+  // useAuthRequestResult
+  const result = await request.promptAsync(discovery, { useProxy: true });
 
-      // TODO: Do not redirect for Credentials and Email providers by default in next major
-      if (redirect || !isSupportingReturn) {
-        const url = data.url ?? callbackUrl;
-        window.location.href = url;
-        // If url contains a hash, the browser does not reload the page. We reload manually
-        if (url.includes("#")) window.location.reload();
-        return;
-      }
-
-      const error = new URL(data.url).searchParams.get("error");
-
-      if (res.ok) {
-        await __NEXTAUTH._getSession({ event: "storage" });
-      }
-
-      return {
-        error,
-        status: res.status,
-        ok: res.ok,
-        url: error ? null : data.url,
-      } as any;
-    default: {
-      /**
-       * Read this:
-       * https://docs.expo.dev/versions/latest/sdk/auth-session/#what--authexpoio--does-for-you
-       * In the `authUrl` we don't want the provider to know our varied URL. The
-       * auth.expo.io flow tries to hide the varied URL from the provider. So,
-       * auth.expo.io is the one who will know our varied URL, and the provider
-       * will only know https://auth.expo.io/@username/app-slug.
-       */
-
-      const proxyRedirectUri = AuthSession.makeRedirectUri({ useProxy: true }); // https://auth.expo.io
-      // const redirectUri = AuthSession.makeRedirectUri({ useProxy: false }); // Some URL which we don't know beforehand
-
-      // This corresponds to useLoadedAuthRequest
-      const request = new AuthSession.AuthRequest({
-        clientId: "21ab7852fae3a4ff0e67", // TODO: move this to env
-        scopes: ["identity"],
-        redirectUri: proxyRedirectUri,
-      });
-      const discovery = {
-        authorizationEndpoint: "https://github.com/login/oauth/authorize",
-        tokenEndpoint: "https://github.com/login/oauth/access_token",
-        revocationEndpoint:
-          "https://github.com/settings/connections/applications/<CLIENT_ID>",
-      };
-      await request.makeAuthUrlAsync(discovery);
-
-      // useAuthRequestResult
-      const result = await request.promptAsync(discovery);
-
-      // TODO: the result is AuthSessionResult, which has the access_token. Do sth.
-      console.log(result);
-
-      // This below is Supabase for reference
-      // const response = await AuthSession.startAsync({
-      //   authUrl: `${supabaseConfig.url}/auth/v1/authorize?provider=${provider}&redirect_to=${proxyRedirectUri}`,
-      //   returnUrl: redirectUri,
-      // });
-
-      // if (response.type !== "success") return;
-
-      // await supabase.auth.signIn({
-      //   refreshToken: response.params.refresh_token,
-      // });
-    }
+  if (result.type === "success") {
+    const { sessionToken } = await trpcClient.query("auth.callback", {
+      code: result.params.code as string,
+      csrfTokenCookie,
+      state,
+      stateEncrypted,
+      callbackUrl: proxyRedirectUri,
+      codeVerifier,
+    });
+    console.log("sessionToken received in Client", sessionToken);
+    await SafeStorage.set("sessionToken", sessionToken);
+    await __NEXTAUTH._getSession({ event: "storage" });
   }
 }
 
@@ -331,7 +335,7 @@ export async function signOut<R extends boolean = true>(
     },
     // @ts-expect-error
     body: new URLSearchParams({
-      csrfToken: await getCsrfToken(),
+      csrfToken: (await getCsrfToken())?.csrfToken,
       callbackUrl,
       json: true,
     }),
@@ -339,7 +343,7 @@ export async function signOut<R extends boolean = true>(
   const res = await fetch(`${baseUrl}/signout`, fetchOptions);
   const data = await res.json();
 
-  broadcast.post({ event: "session", data: { trigger: "signout" } });
+  broadcast.emit("session", { trigger: "signout" });
 
   if (options?.redirect ?? true) {
     const url = data.url ?? callbackUrl;
@@ -445,30 +449,21 @@ export function SessionProvider(props: SessionProviderProps) {
     // on how the session object is being used in the client; it is
     // more robust to have each window/tab fetch it's own copy of the
     // session object rather than share it across instances.
-    const unsubscribe = broadcast.receive(() =>
-      __NEXTAUTH._getSession({ event: "storage" })
-    );
-
-    return () => unsubscribe();
+    const listener = () => __NEXTAUTH._getSession({ event: "storage" });
+    broadcast.on("session", listener);
+    return () => {
+      broadcast.off("session", listener);
+    };
   }, []);
 
-  React.useEffect(() => {
+  useFocusEffect(() => {
     const { refetchOnWindowFocus = true } = props;
     // Listen for when the page is visible, if the user switches tabs
     // and makes our tab visible again, re-fetch the session, but only if
     // this feature is not disabled.
-    const visibilityHandler = () => {
-      if (refetchOnWindowFocus && document.visibilityState === "visible")
-        __NEXTAUTH._getSession({ event: "visibilitychange" });
-    };
-    document.addEventListener("visibilitychange", visibilityHandler, false);
-    return () =>
-      document.removeEventListener(
-        "visibilitychange",
-        visibilityHandler,
-        false
-      );
-  }, [props.refetchOnWindowFocus]);
+    if (refetchOnWindowFocus)
+      __NEXTAUTH._getSession({ event: "visibilitychange" });
+  });
 
   React.useEffect(() => {
     const { refetchInterval } = props;

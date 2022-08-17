@@ -1,6 +1,6 @@
 import { Button } from "app/components/Button";
 import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
-import { signIn } from "app/utils/auth/index";
+import { signIn, useSession } from "app/utils/auth/Auth";
 import { trpc } from "app/utils/trpc";
 import { TextLink } from "solito/link";
 import { Text, View } from "universal";
@@ -10,6 +10,7 @@ export function HomeScreen() {
   // const { data: secretMessage, isLoading } = trpc.useQuery([
   //   "protected.getSecretMessage",
   // ]);
+  const { data, status } = useSession();
 
   return (
     <View className="flex-1">
@@ -27,6 +28,10 @@ export function HomeScreen() {
             <Text>Loading..</Text>
           )}
           {/* {secretMessage && <Text>{secretMessage}</Text>} */}
+        </Text>
+
+        <Text className="items-center text-3xl font-extrabold text-center">
+          <Text>Auth status: {status}</Text>
         </Text>
 
         <Button onPress={() => signIn("github")}>Sign in via GitHub</Button>

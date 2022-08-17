@@ -148,7 +148,63 @@ export const authRouter = createRouter()
       const sessionToken = getCookieFromHeader(
         cookies.sessionToken.name,
         callbackRes.headers
-      );
+      ) as string;
       return { sessionToken };
+    },
+  })
+  .query("csrf", {
+    resolve: async () => {
+      const cookies = defaultCookies(false);
+
+      const csrfTokenRes = await fetch("http://localhost:3000/api/auth/csrf");
+      const csrfToken = (await csrfTokenRes.json()).csrfToken;
+      const csrfTokenCookie = getCookieFromHeader(
+        cookies.csrfToken.name,
+        csrfTokenRes.headers
+      ) as string;
+      return {
+        csrfToken,
+        csrfTokenCookie,
+      };
+    },
+  })
+  .query("proxy", {
+    input: z.object({
+      path: z.string(),
+      sessionToken: z.string().nullable(),
+      csrfToken: z.string().nullable(),
+    }),
+    resolve: async ({ input }) => {
+      const cookies = defaultCookies(false);
+
+      let cookieString = "";
+      const appendCookie = (cookie: string) => {
+        cookieString =
+          cookieString !== "" ? `${cookieString}; ${cookie}` : cookie;
+      };
+
+      if (input.sessionToken) {
+        const sessionTokenCookie = `${cookies.sessionToken.name}=${input.sessionToken}`;
+        appendCookie(sessionTokenCookie);
+      }
+      if (input.csrfToken) {
+        const csrfCookie = `${cookies.csrfToken.name}=${input.csrfToken}`;
+        appendCookie(csrfCookie);
+      }
+
+      const options: RequestInit = {};
+      if (cookieString !== "") {
+        options.headers = {
+          Cookie: cookieString,
+        };
+      }
+
+      const res = await fetch(
+        `http://localhost:3000/api/auth/${input.path}`,
+        options
+      );
+      const data = await res.json();
+      if (!res.ok) throw data;
+      return Object.keys(data).length > 0 ? data : null; // Return null if data empty
     },
   });

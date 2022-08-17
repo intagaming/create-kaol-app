@@ -1,3 +1,4 @@
+import { SessionProvider } from "app/utils/auth/Auth";
 import { ReactNode } from "react";
 import { APIProvider } from "./APIProvider";
 import { NavigationProvider } from "./NavigationContainer/NavigationContainer";
@@ -10,7 +11,9 @@ export function Provider({ children }: { children: ReactNode }) {
   return (
     <>
       <APIProvider>
-        <NavigationProvider>{children}</NavigationProvider>
+        <NavigationProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </NavigationProvider>
       </APIProvider>
     </>
   );
