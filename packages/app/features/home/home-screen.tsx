@@ -29,7 +29,10 @@ export function HomeScreen() {
 
         <Text className="items-center text-3xl font-extrabold text-center">
           <Text>
-            Auth status: {status}. You are {data?.user?.name}.
+            Auth status: {status}.
+            {status === "authenticated" && (
+              <Text>You are {data?.user?.name}.</Text>
+            )}
           </Text>
         </Text>
 
