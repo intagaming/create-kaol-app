@@ -112,7 +112,7 @@ const __NEXTAUTH: NextAuthClientConfig = {
   _getSession: () => {},
 };
 
-const broadcast = new EventEmitter();
+// const broadcast = new EventEmitter();
 const logger = proxyLogger(_logger, __NEXTAUTH.basePath);
 
 export type SessionContextValue<R extends boolean = false> = R extends true
@@ -179,9 +179,9 @@ export async function getSession(params?: GetSessionParams) {
     params
   );
   console.log("getSession", session);
-  if (params?.broadcast ?? true) {
-    broadcast.emit("session", { trigger: "getSession" });
-  }
+  // if (params?.broadcast ?? true) {
+  //   broadcast.emit("session", { trigger: "getSession" });
+  // }
   return session;
 }
 
@@ -343,7 +343,7 @@ export async function signOut<R extends boolean = true>(
   const res = await fetch(`${baseUrl}/signout`, fetchOptions);
   const data = await res.json();
 
-  broadcast.emit("session", { trigger: "signout" });
+  // broadcast.emit("session", { trigger: "signout" });
 
   if (options?.redirect ?? true) {
     const url = data.url ?? callbackUrl;
@@ -390,6 +390,7 @@ export function SessionProvider(props: SessionProviderProps) {
 
   React.useEffect(() => {
     __NEXTAUTH._getSession = async ({ event } = {}) => {
+      console.log("getSession event", event);
       try {
         const storageEvent = event === "storage";
         // We should always update if we don't have a client session yet
@@ -439,31 +440,33 @@ export function SessionProvider(props: SessionProviderProps) {
     };
   }, []);
 
-  React.useEffect(() => {
-    // Listen for storage events and update session if event fired from
-    // another window (but suppress firing another event to avoid a loop)
-    // Fetch new session data but tell it to not to fire another event to
-    // avoid an infinite loop.
-    // Note: We could pass session data through and do something like
-    // `setData(message.data)` but that can cause problems depending
-    // on how the session object is being used in the client; it is
-    // more robust to have each window/tab fetch it's own copy of the
-    // session object rather than share it across instances.
-    const listener = () => __NEXTAUTH._getSession({ event: "storage" });
-    broadcast.on("session", listener);
-    return () => {
-      broadcast.off("session", listener);
-    };
-  }, []);
+  // React.useEffect(() => {
+  //   // Listen for storage events and update session if event fired from
+  //   // another window (but suppress firing another event to avoid a loop)
+  //   // Fetch new session data but tell it to not to fire another event to
+  //   // avoid an infinite loop.
+  //   // Note: We could pass session data through and do something like
+  //   // `setData(message.data)` but that can cause problems depending
+  //   // on how the session object is being used in the client; it is
+  //   // more robust to have each window/tab fetch it's own copy of the
+  //   // session object rather than share it across instances.
+  //   const listener = () => __NEXTAUTH._getSession({ event: "storage" });
+  //   broadcast.on("session", listener);
+  //   return () => {
+  //     broadcast.off("session", listener);
+  //   };
+  // }, []);
 
-  useFocusEffect(() => {
-    const { refetchOnWindowFocus = true } = props;
-    // Listen for when the page is visible, if the user switches tabs
-    // and makes our tab visible again, re-fetch the session, but only if
-    // this feature is not disabled.
-    if (refetchOnWindowFocus)
-      __NEXTAUTH._getSession({ event: "visibilitychange" });
-  });
+  useFocusEffect(
+    React.useCallback(() => {
+      const { refetchOnWindowFocus = true } = props;
+      // Listen for when the page is visible, if the user switches tabs
+      // and makes our tab visible again, re-fetch the session, but only if
+      // this feature is not disabled.
+      if (refetchOnWindowFocus)
+        __NEXTAUTH._getSession({ event: "visibilitychange" });
+    }, [props])
+  );
 
   React.useEffect(() => {
     const { refetchInterval } = props;
