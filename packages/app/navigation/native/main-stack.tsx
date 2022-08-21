@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "app/features/auth/LoginScreen";
+import { useSession } from "app/utils/auth";
 
 import { HomeScreen } from "../../features/home/home-screen";
 import { routes, RouteTypes } from "../routePaths";
@@ -7,6 +8,8 @@ import { routes, RouteTypes } from "../routePaths";
 const Stack = createNativeStackNavigator<Pick<RouteTypes, "home" | "login">>();
 
 export function MainStack() {
+  const { status } = useSession();
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -16,13 +19,15 @@ export function MainStack() {
           title: "Home",
         }}
       />
-      <Stack.Screen
-        name={routes.login.name}
-        component={LoginScreen}
-        options={{
-          title: "Login",
-        }}
-      />
+      {status === "unauthenticated" && (
+        <Stack.Screen
+          name={routes.login.name}
+          component={LoginScreen}
+          options={{
+            title: "Login",
+          }}
+        />
+      )}
     </Stack.Navigator>
   );
 }
