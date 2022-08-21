@@ -1,9 +1,11 @@
 import { Button } from "app/components/Button";
 import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
+import { routes } from "app/navigation/routePaths";
 import { signIn, useSession } from "app/utils/auth/Auth";
 import { trpc } from "app/utils/trpc";
-import { TextLink } from "solito/link";
+import { Link, TextLink } from "solito/link";
 import { Text, View } from "universal";
+import { tw } from "universal/tailwind";
 
 const AuthComponent = () => {
   const { data: secretMessage } = trpc.useQuery(["protected.getSecretMessage"]);
@@ -51,7 +53,11 @@ export function HomeScreen() {
 
         {status === "authenticated" && <AuthComponent />}
 
-        <Button onPress={() => signIn("github")}>Sign in via GitHub</Button>
+        <Link href={routes.login.getPath()}>
+          <View className="p-2 border rounded-md">
+            <Text>Login</Text>
+          </View>
+        </Link>
 
         <View className="my-8 max-w-base">
           <Text className="mb-4 text-center">

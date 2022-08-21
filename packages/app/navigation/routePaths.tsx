@@ -3,9 +3,9 @@ import { createRoutes } from "./utils";
 // Define the params of EVERY route in the app
 export type RouteTypes = {
   home: undefined;
+  login: undefined;
   // postDetail: { id: string };
   // postList: undefined;
-  // login: undefined;
   // signUp: undefined;
 };
 
@@ -16,6 +16,10 @@ export const routes = createRoutes({
     route: "",
     getPath: () => "/",
   },
+  login: {
+    route: "/login",
+    getPath: () => "/login",
+  },
   // postDetail: {
   //   route: "/posts/:id",
   //   getPath: ({ id }) => `/posts/${id}`,
@@ -23,10 +27,6 @@ export const routes = createRoutes({
   // postList: {
   //   route: "/posts",
   //   getPath: () => "/posts",
-  // },
-  // login: {
-  //   route: "/auth/login",
-  //   getPath: () => "/auth/login",
   // },
   // signUp: {
   //   route: "/auth/signup",
