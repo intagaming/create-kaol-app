@@ -1,7 +1,7 @@
 import { Button } from "app/components/Button";
 import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
 import { routes } from "app/navigation/routePaths";
-import { signIn, useSession } from "app/utils/auth/Auth";
+import { signIn, signOut, useSession } from "app/utils/auth";
 import { trpc } from "app/utils/trpc";
 import { Link, TextLink } from "solito/link";
 import { Text, View } from "universal";
@@ -11,7 +11,8 @@ const AuthComponent = () => {
   const { data: secretMessage } = trpc.useQuery(["protected.getSecretMessage"]);
 
   return (
-    <View>
+    <View className="items-center">
+      <Button onPress={() => signOut()}>Logout</Button>
       {secretMessage && (
         <Text className="items-center text-3xl font-extrabold text-center">
           <Text>Secret message: {secretMessage}</Text>
@@ -53,11 +54,13 @@ export function HomeScreen() {
 
         {status === "authenticated" && <AuthComponent />}
 
-        <Link href={routes.login.getPath()}>
-          <View className="p-2 border rounded-md">
-            <Text>Login</Text>
-          </View>
-        </Link>
+        {status === "unauthenticated" && (
+          <Link href={routes.login.getPath()}>
+            <View className="p-2 border rounded-md">
+              <Text>Login</Text>
+            </View>
+          </Link>
+        )}
 
         <View className="my-8 max-w-base">
           <Text className="mb-4 text-center">

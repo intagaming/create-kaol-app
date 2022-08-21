@@ -320,38 +320,33 @@ export async function signIn<
  */
 export async function signOut<R extends boolean = true>(
   options?: SignOutParams<R>
-): Promise<R extends true ? undefined : SignOutResponse> {
-  const { callbackUrl = window.location.href } = options ?? {};
-  const baseUrl = apiBaseUrl(__NEXTAUTH);
-  const fetchOptions = {
-    method: "post",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    // @ts-expect-error
-    body: new URLSearchParams({
-      csrfToken: (await getCsrfToken())?.csrfToken,
-      callbackUrl,
-      json: true,
-    }),
-  };
-  const res = await fetch(`${baseUrl}/signout`, fetchOptions);
-  const data = await res.json();
+): Promise<void> {
+  const trpcClient = createTRPCClient<AppRouter>({
+    url: "http://localhost:3000/api/trpc",
+  });
 
-  // broadcast.emit("session", { trigger: "signout" });
+  const sessionToken = await SafeStorage.get("sessionToken");
+  if (!sessionToken) throw new Error("No sessionToken");
 
-  if (options?.redirect ?? true) {
-    const url = data.url ?? callbackUrl;
-    window.location.href = url;
-    // If url contains a hash, the browser does not reload the page. We reload manually
-    if (url.includes("#")) window.location.reload();
-    // @ts-expect-error
+  let csrfToken = await SafeStorage.get("csrf");
+  if (!csrfToken) {
+    csrfToken = (await getCsrfToken())?.csrfTokenCookie ?? null;
+  }
+
+  try {
+    await trpcClient.mutation("auth.logout", { csrfToken, sessionToken });
+  } catch (error) {
+    logger.error("CLIENT_SIGNOUT_ERROR", { error: error as Error });
     return;
   }
 
+  await SafeStorage.remove("sessionToken");
+  await SafeStorage.remove("csrf");
+
+  // Trigger session refetch to update AuthContext state.
   await __NEXTAUTH._getSession({ event: "storage" });
 
-  return data;
+  return undefined;
 }
 
 /**

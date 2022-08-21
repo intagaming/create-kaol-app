@@ -207,4 +207,47 @@ export const authRouter = createRouter()
       if (!res.ok) throw data;
       return Object.keys(data).length > 0 ? data : null; // Return null if data empty
     },
+  })
+  .mutation("logout", {
+    input: z.object({
+      sessionToken: z.string(),
+      csrfToken: z.string(),
+    }),
+    resolve: async ({ input }) => {
+      const cookies = defaultCookies(false);
+
+      let cookieString = "";
+      const appendCookie = (cookie: string) => {
+        cookieString =
+          cookieString !== "" ? `${cookieString}; ${cookie}` : cookie;
+      };
+
+      const sessionTokenCookie = `${cookies.sessionToken.name}=${input.sessionToken}`;
+      appendCookie(sessionTokenCookie);
+      const csrfCookie = `${cookies.csrfToken.name}=${input.csrfToken}`;
+      appendCookie(csrfCookie);
+
+      const options: RequestInit = {
+        method: "post",
+        headers: {
+          Cookie: cookieString,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        // @ts-expect-error
+        body: new URLSearchParams({
+          csrfToken: input.csrfToken,
+          callbackUrl: "http://localhost:3000",
+          json: true,
+        }),
+      };
+
+      const res = await fetch(
+        `http://localhost:3000/api/auth/signout`,
+        options
+      );
+      const data = await res.json();
+      if (!res.ok) throw data;
+      // return Object.keys(data).length > 0 ? data : null; // Return null if data empty
+      return true;
+    },
   });
