@@ -1,1 +1,1 @@
-export { useSession, signIn, SessionProvider } from "next-auth/react";
+export * from "next-auth/react";
