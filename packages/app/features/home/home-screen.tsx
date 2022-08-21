@@ -5,9 +5,22 @@ import { trpc } from "app/utils/trpc";
 import { TextLink } from "solito/link";
 import { Text, View } from "universal";
 
+const AuthComponent = () => {
+  const { data: secretMessage } = trpc.useQuery(["protected.getSecretMessage"]);
+
+  return (
+    <View>
+      {secretMessage && (
+        <Text className="items-center text-3xl font-extrabold text-center">
+          <Text>Secret message: {secretMessage}</Text>
+        </Text>
+      )}
+    </View>
+  );
+};
+
 export function HomeScreen() {
   const hello = trpc.useQuery(["example.hello", { text: "from Kaol" }]);
-  const { data: secretMessage } = trpc.useQuery(["protected.getSecretMessage"]);
   const { data, status } = useSession();
 
   return (
@@ -36,11 +49,7 @@ export function HomeScreen() {
           </Text>
         </Text>
 
-        {secretMessage && (
-          <Text className="items-center text-3xl font-extrabold text-center">
-            <Text>Secret message: {secretMessage}</Text>
-          </Text>
-        )}
+        {status === "authenticated" && <AuthComponent />}
 
         <Button onPress={() => signIn("github")}>Sign in via GitHub</Button>
 
