@@ -47,6 +47,8 @@ import { webProviders } from "config/auth";
 import { signinGithub, SigninResult } from "./ExpoAuth";
 import { trpcClient } from "../trpc";
 import { storageKeys } from "app/constants";
+import { useRouter } from "solito/router";
+import { routes } from "app/navigation/routePaths";
 
 export * from "./types";
 
@@ -134,21 +136,22 @@ export function useSession<R extends boolean>(options?: UseSessionOptions<R>) {
 
   const requiredAndNotLoading = required && value.status === "unauthenticated";
 
-  // TODO: re-implement `required`
-  // React.useEffect(() => {
-  //   if (requiredAndNotLoading) {
-  //     const url = `/api/auth/signin?${new URLSearchParams({
-  //       error: "SessionRequired",
-  //       callbackUrl: window.location.href,
-  //     })}`;
-  //     if (onUnauthenticated) onUnauthenticated();
-  //     else window.location.href = url;
-  //   }
-  // }, [requiredAndNotLoading, onUnauthenticated]);
+  const { push } = useRouter();
 
-  // if (requiredAndNotLoading) {
-  //   return { data: value.data, status: "loading" } as const;
-  // }
+  React.useEffect(() => {
+    if (requiredAndNotLoading) {
+      // const url = `/api/auth/signin?${new URLSearchParams({
+      //   error: "SessionRequired",
+      //   callbackUrl: window.location.href,
+      // })}`;
+      if (onUnauthenticated) onUnauthenticated();
+      else push(routes.login.getPath());
+    }
+  }, [requiredAndNotLoading, onUnauthenticated, push]);
+
+  if (requiredAndNotLoading) {
+    return { data: value.data, status: "loading" } as const;
+  }
 
   return value;
 }
