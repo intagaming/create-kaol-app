@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
           async request(context) {
             // context contains useful properties to help you make the request.
             const tokens = await context.client.oauthCallback(
-              "https://auth.expo.io/@xuanan2001/kaol-expo",
+              process.env.EXPO_PROXY_URL,
               context.params,
               context.checks
             );
@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
       else if (new URL(url).origin === baseUrl) return url;
-      else if (url.startsWith("https://auth.expo.io/@xuanan2001/kaol-expo"))
+      else if (process.env.EXPO_PROXY_URL && url === process.env.EXPO_PROXY_URL)
         return url;
       return baseUrl;
     },
