@@ -1,7 +1,7 @@
 import Config from "app/config";
 import { storageKeys } from "app/constants";
+import SafeStorage from "app/utils/safe-storage";
 import { trpc } from "app/utils/trpc";
-import SafeStorage from "lib/safe-storage";
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 
