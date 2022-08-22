@@ -5,6 +5,7 @@
     "api": "*",
     "app": "*",
     "config": "*",
+    "dotenv": "^16.0.1",
     "expo": "^44.0.0",
     "expo-secure-store": "~11.1.0",
     "expo-splash-screen": "~0.14.1",

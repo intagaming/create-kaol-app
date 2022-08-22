@@ -1,6 +1,7 @@
 import { nativeProviders } from "config/auth";
 import * as AuthSession from "expo-auth-session";
 import { trpcClient } from "../trpc";
+import Constants from "expo-constants";
 
 export type SigninResult = {
   result: AuthSession.AuthSessionResult;
@@ -17,7 +18,7 @@ export const signinGithub = async () => {
 
   // This corresponds to useLoadedAuthRequest
   const request = new AuthSession.AuthRequest({
-    clientId: "3fbd7538a8f71f47cba1", // TODO: move this to env
+    clientId: Constants.manifest?.extra?.githubId ?? "",
     scopes: ["read:user", "user:email", "openid"],
     redirectUri: proxyRedirectUri,
     codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
@@ -62,7 +63,7 @@ export const signinDiscord = async () => {
 
   // This corresponds to useLoadedAuthRequest
   const request = new AuthSession.AuthRequest({
-    clientId: "1011280896910950460", // TODO: move this to env
+    clientId: Constants.manifest?.extra?.discordId ?? "",
     scopes: ["identify", "email"],
     redirectUri: proxyRedirectUri,
     usePKCE: false,

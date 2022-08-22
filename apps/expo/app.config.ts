@@ -1,4 +1,5 @@
 import { ExpoConfig, ConfigContext } from "@expo/config";
+import "dotenv/config";
 
 const configFunc = ({}: ConfigContext): ExpoConfig => ({
   name: "kaol-expo",
@@ -15,6 +16,8 @@ const configFunc = ({}: ConfigContext): ExpoConfig => ({
   },
   extra: {
     nextAuthUrl: process.env.NEXTAUTH_URL,
+    githubId: process.env.EXPO_GITHUB_ID,
+    discordId: process.env.DISCORD_ID,
   },
 });
 
