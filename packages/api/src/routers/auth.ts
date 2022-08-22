@@ -66,6 +66,12 @@ export const getCookieFromHeader = (name: string, headers: Headers) => {
     ?.split(";")[0];
 };
 
+const cookies = defaultCookies(false);
+
+const appendCookie = (cookieString: string, cookie: string) => {
+  return cookieString !== "" ? `${cookieString}; ${cookie}` : cookie;
+};
+
 export const authRouter = createRouter()
   .query("signIn", {
     input: z.object({
@@ -73,8 +79,6 @@ export const authRouter = createRouter()
       proxyRedirectUri: z.string(),
     }),
     resolve: async ({ input }) => {
-      const cookies = defaultCookies(false);
-
       // Get csrf token
       const csrfTokenRes = await fetch(`${webHost}/api/auth/csrf`);
       const csrfToken = (await csrfTokenRes.json()).csrfToken;
@@ -136,8 +140,6 @@ export const authRouter = createRouter()
       codeVerifier: z.string(),
     }),
     resolve: async ({ input }) => {
-      const cookies = defaultCookies(false);
-
       // Callback
       const callbackRes = await fetch(
         `${webHost}/api/auth/callback/${input.provider}?state=${input.state}&code=${input.code}`,
@@ -157,8 +159,6 @@ export const authRouter = createRouter()
   })
   .query("csrf", {
     resolve: async () => {
-      const cookies = defaultCookies(false);
-
       const csrfTokenRes = await fetch(`${webHost}/api/auth/csrf`);
       const csrfToken = (await csrfTokenRes.json()).csrfToken;
       const csrfTokenCookie = getCookieFromHeader(
@@ -178,21 +178,15 @@ export const authRouter = createRouter()
       csrfToken: z.string().nullable(),
     }),
     resolve: async ({ input }) => {
-      const cookies = defaultCookies(false);
-
       let cookieString = "";
-      const appendCookie = (cookie: string) => {
-        cookieString =
-          cookieString !== "" ? `${cookieString}; ${cookie}` : cookie;
-      };
 
       if (input.sessionToken) {
         const sessionTokenCookie = `${cookies.sessionToken.name}=${input.sessionToken}`;
-        appendCookie(sessionTokenCookie);
+        cookieString = appendCookie(cookieString, sessionTokenCookie);
       }
       if (input.csrfToken) {
         const csrfCookie = `${cookies.csrfToken.name}=${input.csrfToken}`;
-        appendCookie(csrfCookie);
+        cookieString = appendCookie(cookieString, csrfCookie);
       }
 
       const options: RequestInit = {};
@@ -214,18 +208,12 @@ export const authRouter = createRouter()
       csrfToken: z.string(),
     }),
     resolve: async ({ input }) => {
-      const cookies = defaultCookies(false);
-
       let cookieString = "";
-      const appendCookie = (cookie: string) => {
-        cookieString =
-          cookieString !== "" ? `${cookieString}; ${cookie}` : cookie;
-      };
 
       const sessionTokenCookie = `${cookies.sessionToken.name}=${input.sessionToken}`;
-      appendCookie(sessionTokenCookie);
+      cookieString = appendCookie(cookieString, sessionTokenCookie);
       const csrfCookie = `${cookies.csrfToken.name}=${input.csrfToken}`;
-      appendCookie(csrfCookie);
+      cookieString = appendCookie(cookieString, csrfCookie);
 
       const options: RequestInit = {
         method: "post",
