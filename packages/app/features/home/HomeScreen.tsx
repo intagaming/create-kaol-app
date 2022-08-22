@@ -1,11 +1,10 @@
 import { Button } from "app/components/Button";
 import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
 import { routes } from "app/navigation/routePaths";
-import { signIn, signOut, useSession } from "app/utils/auth";
+import { signOut, useSession } from "app/utils/auth";
 import { trpc } from "app/utils/trpc";
 import { Link, TextLink } from "solito/link";
 import { Text, View } from "universal";
-import { tw } from "universal/tailwind";
 
 const AuthComponent = () => {
   const { data: secretMessage } = trpc.useQuery(["protected.getSecretMessage"]);
@@ -22,7 +21,7 @@ const AuthComponent = () => {
   );
 };
 
-export function HomeScreen() {
+export default function HomeScreen() {
   const hello = trpc.useQuery(["example.hello", { text: "from Kaol" }]);
   const { data, status } = useSession();
 

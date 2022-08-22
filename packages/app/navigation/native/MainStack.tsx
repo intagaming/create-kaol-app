@@ -2,12 +2,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "app/features/auth/LoginScreen";
 import { useSession } from "app/utils/auth";
 
-import { HomeScreen } from "../../features/home/home-screen";
+import HomeScreen from "../../features/home/HomeScreen";
 import { routes, RouteTypes } from "../routePaths";
 
 const Stack = createNativeStackNavigator<Pick<RouteTypes, "home" | "login">>();
 
-export function MainStack() {
+export default function MainStack() {
   const { status } = useSession();
 
   return (

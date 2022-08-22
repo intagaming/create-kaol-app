@@ -1,4 +1,4 @@
-import { MainStack } from "./main-stack";
+import MainStack from "./MainStack";
 import { routes } from "../routePaths";
 
 export const INITIAL_ROUTE = routes.home.name;
