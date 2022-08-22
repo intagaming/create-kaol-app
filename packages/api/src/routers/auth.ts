@@ -1,6 +1,7 @@
 import { createRouter } from "./context";
 import z from "zod";
 import type { CookiesOptions } from "next-auth/core/types";
+import { webHost } from "app/config";
 
 export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
@@ -75,7 +76,7 @@ export const authRouter = createRouter()
       const cookies = defaultCookies(false);
 
       // Get csrf token
-      const csrfTokenRes = await fetch("http://localhost:3000/api/auth/csrf");
+      const csrfTokenRes = await fetch(`${webHost}/api/auth/csrf`);
       const csrfToken = (await csrfTokenRes.json()).csrfToken;
       const csrfTokenCookie = getCookieFromHeader(
         cookies.csrfToken.name,
@@ -85,7 +86,7 @@ export const authRouter = createRouter()
       // Get authorizationUrl
       const callbackUrl = input.proxyRedirectUri;
       const signInRes = await fetch(
-        `http://localhost:3000/api/auth/signin/${input.provider}`,
+        `${webHost}/api/auth/signin/${input.provider}`,
         {
           redirect: "manual",
           method: "POST",
@@ -139,7 +140,7 @@ export const authRouter = createRouter()
 
       // Callback
       const callbackRes = await fetch(
-        `http://localhost:3000/api/auth/callback/${input.provider}?state=${input.state}&code=${input.code}`,
+        `${webHost}/api/auth/callback/${input.provider}?state=${input.state}&code=${input.code}`,
         {
           redirect: "manual",
           headers: {
@@ -158,7 +159,7 @@ export const authRouter = createRouter()
     resolve: async () => {
       const cookies = defaultCookies(false);
 
-      const csrfTokenRes = await fetch("http://localhost:3000/api/auth/csrf");
+      const csrfTokenRes = await fetch(`${webHost}/api/auth/csrf`);
       const csrfToken = (await csrfTokenRes.json()).csrfToken;
       const csrfTokenCookie = getCookieFromHeader(
         cookies.csrfToken.name,
@@ -201,10 +202,7 @@ export const authRouter = createRouter()
         };
       }
 
-      const res = await fetch(
-        `http://localhost:3000/api/auth/${input.path}`,
-        options
-      );
+      const res = await fetch(`${webHost}/api/auth/${input.path}`, options);
       const data = await res.json();
       if (!res.ok) throw data;
       return Object.keys(data).length > 0 ? data : null; // Return null if data empty
@@ -238,18 +236,14 @@ export const authRouter = createRouter()
         // @ts-expect-error
         body: new URLSearchParams({
           csrfToken: input.csrfToken,
-          callbackUrl: "http://localhost:3000",
+          callbackUrl: webHost,
           json: true,
         }),
       };
 
-      const res = await fetch(
-        `http://localhost:3000/api/auth/signout`,
-        options
-      );
+      const res = await fetch(`${webHost}/api/auth/signout`, options);
       const data = await res.json();
       if (!res.ok) throw data;
-      // return Object.keys(data).length > 0 ? data : null; // Return null if data empty
       return true;
     },
   });

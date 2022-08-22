@@ -54,3 +54,5 @@ export const getCurrentChannel = (): UpdateChannel => {
 const Config = enviromentConfigs[getCurrentChannel()];
 
 export default Config;
+
+export const webHost = process.env.WEBHOST || "http://localhost:3000";

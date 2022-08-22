@@ -65,10 +65,6 @@ export async function fetchData<T = any>(
   logger: LoggerInstance,
   { ctx, req = ctx?.req }: CtxOrReq = {}
 ): Promise<T | null> {
-  const trpcClient = createTRPCClient<AppRouter>({
-    url: "http://localhost:3000/api/trpc",
-  });
-
   const url = `${apiBaseUrl(__NEXTAUTH)}/${path}`;
   const sessionToken = await SafeStorage.get("sessionToken");
   try {
@@ -196,10 +192,6 @@ export async function getSession(params?: GetSessionParams) {
 export async function getCsrfToken(params?: CtxOrReq) {
   // type CsrfResponse = { csrfToken: string };
   // const response = await fetchData("csrf", __NEXTAUTH, logger, params);
-
-  const trpcClient = createTRPCClient<AppRouter>({
-    url: "http://localhost:3000/api/trpc",
-  });
   const { csrfToken, csrfTokenCookie } = await trpcClient.query("auth.csrf");
 
   await SafeStorage.set("csrf", csrfTokenCookie);
@@ -295,10 +287,6 @@ export async function signIn<
 export async function signOut<R extends boolean = true>(
   options?: SignOutParams<R>
 ): Promise<void> {
-  const trpcClient = createTRPCClient<AppRouter>({
-    url: "http://localhost:3000/api/trpc",
-  });
-
   const sessionToken = await SafeStorage.get("sessionToken");
   if (!sessionToken) throw new Error("No sessionToken");
 
