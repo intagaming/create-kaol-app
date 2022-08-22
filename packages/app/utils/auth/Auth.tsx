@@ -331,7 +331,7 @@ export async function signOut<R extends boolean = true>(
  * [Documentation](https://next-auth.js.org/getting-started/client#sessionprovider)
  */
 export function SessionProvider(props: SessionProviderProps) {
-  const { children, basePath } = props;
+  const { children, basePath, refetchInterval } = props;
 
   if (basePath) __NEXTAUTH.basePath = basePath;
 
@@ -432,7 +432,6 @@ export function SessionProvider(props: SessionProviderProps) {
   );
 
   React.useEffect(() => {
-    const { refetchInterval } = props;
     // Set up polling
     if (refetchInterval) {
       const refetchIntervalTimer = setInterval(() => {
@@ -442,7 +441,7 @@ export function SessionProvider(props: SessionProviderProps) {
       }, refetchInterval * 1000);
       return () => clearInterval(refetchIntervalTimer);
     }
-  }, [props.refetchInterval]);
+  }, [refetchInterval]);
 
   const value: any = React.useMemo(
     () => ({
