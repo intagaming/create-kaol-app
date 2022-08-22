@@ -230,10 +230,6 @@ export async function signIn<
   P extends RedirectableProviderType ? SignInResponse | undefined : undefined
 > {
   if (!provider || !webProviders.includes(provider)) {
-    // TODO:
-    // window.location.href = `${baseUrl}/signin?${new URLSearchParams({
-    //   callbackUrl,
-    // })}`;
     console.log("provider not valid", provider);
     return;
   }
