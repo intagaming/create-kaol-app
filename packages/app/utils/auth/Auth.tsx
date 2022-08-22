@@ -45,6 +45,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import EventEmitter from "events";
 import { defaultCookies } from "next-auth/core/lib/cookie";
 import { webProviders } from "config/auth";
+import { signinGithub, SigninResult } from "./ExpoAuth";
+import { trpcClient } from "../trpc";
 
 export * from "./types";
 
@@ -250,43 +252,27 @@ export async function signIn<
     return;
   }
 
-  const proxyRedirectUri = AuthSession.makeRedirectUri({ useProxy: true }); // https://auth.expo.io
-
-  // This corresponds to useLoadedAuthRequest
-  const request = new AuthSession.AuthRequest({
-    clientId: "3fbd7538a8f71f47cba1", // TODO: move this to env
-    scopes: ["read:user", "user:email", "openid"],
-    redirectUri: proxyRedirectUri,
-    codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
-  });
-  const discovery = {
-    authorizationEndpoint: "https://github.com/login/oauth/authorize",
-    tokenEndpoint: "https://github.com/login/oauth/access_token",
-    revocationEndpoint:
-      "https://github.com/settings/connections/applications/3fbd7538a8f71f47cba1",
-  };
-
-  const trpcClient = createTRPCClient<AppRouter>({
-    url: "http://localhost:3000/api/trpc",
-  });
+  let signinResult: SigninResult;
+  switch (provider) {
+    case "github":
+      signinResult = await signinGithub();
+      break;
+    default:
+      return;
+  }
   const {
+    result,
     state,
-    codeChallenge,
-    csrfTokenCookie,
-    stateEncrypted,
     codeVerifier,
-  } = await trpcClient.query("auth.signIn", {
+    csrfTokenCookie,
     proxyRedirectUri,
-  });
-  request.state = state;
-  request.codeChallenge = codeChallenge;
-  await request.makeAuthUrlAsync(discovery);
-
-  // useAuthRequestResult
-  const result = await request.promptAsync(discovery, { useProxy: true });
+    stateEncrypted,
+    provider: nativeProvider,
+  } = signinResult;
 
   if (result.type === "success") {
     const { sessionToken } = await trpcClient.query("auth.callback", {
+      provider: nativeProvider,
       code: result.params.code as string,
       csrfTokenCookie,
       state,

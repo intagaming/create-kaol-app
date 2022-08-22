@@ -2,7 +2,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "db";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
-import { providerPairs } from "config/auth";
+import { isValidProvider, providerPairs } from "config/auth";
 
 const prismaAdapter = PrismaAdapter(prisma);
 
@@ -50,8 +50,9 @@ export const authOptions: NextAuthOptions = {
       });
       // If registering
       if (!userByAccount) {
-        if (account.provider in providerPairs) {
-          const counterpart = providerPairs[account.provider];
+        const provider = account.provider;
+        if (isValidProvider(provider)) {
+          const counterpart = providerPairs[provider];
           const userByAccount = await prismaAdapter.getUserByAccount({
             providerAccountId: account.providerAccountId,
             provider: counterpart,

@@ -68,6 +68,7 @@ export const getCookieFromHeader = (name: string, headers: Headers) => {
 export const authRouter = createRouter()
   .query("signIn", {
     input: z.object({
+      provider: z.string(),
       proxyRedirectUri: z.string(),
     }),
     resolve: async ({ input }) => {
@@ -84,7 +85,7 @@ export const authRouter = createRouter()
       // Get authorizationUrl
       const callbackUrl = input.proxyRedirectUri;
       const signInRes = await fetch(
-        "http://localhost:3000/api/auth/signin/github-expo",
+        `http://localhost:3000/api/auth/signin/${input.provider}`,
         {
           redirect: "manual",
           method: "POST",
@@ -125,6 +126,7 @@ export const authRouter = createRouter()
   })
   .query("callback", {
     input: z.object({
+      provider: z.string(),
       code: z.string(),
       state: z.string(),
       stateEncrypted: z.string(),
@@ -137,7 +139,7 @@ export const authRouter = createRouter()
 
       // Callback
       const callbackRes = await fetch(
-        `http://localhost:3000/api/auth/callback/github-expo?state=${input.state}&code=${input.code}`,
+        `http://localhost:3000/api/auth/callback/${input.provider}?state=${input.state}&code=${input.code}`,
         {
           redirect: "manual",
           headers: {
