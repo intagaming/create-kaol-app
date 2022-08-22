@@ -9,12 +9,7 @@
 // We use HTTP POST requests with CSRF Tokens to protect against CSRF attacks.
 
 import { Session } from "next-auth";
-import {
-  BroadcastChannel,
-  CtxOrReq,
-  NextAuthClientConfig,
-  now,
-} from "next-auth/client/_utils";
+import { CtxOrReq, NextAuthClientConfig, now } from "next-auth/client/_utils";
 import _logger, { LoggerInstance, proxyLogger } from "next-auth/utils/logger";
 import parseUrl from "next-auth/utils/parse-url";
 import * as React from "react";
@@ -27,36 +22,29 @@ import type {
   SignInOptions,
   SignInResponse,
   SignOutParams,
-  SignOutResponse,
   UseSessionOptions,
-} from "./types";
+} from "next-auth/react/types";
 
 import type {
   BuiltInProviderType,
   RedirectableProviderType,
 } from "next-auth/providers";
 
-import { createTRPCClient } from "@trpc/client";
-import { AppRouter } from "api/src";
-import * as AuthSession from "expo-auth-session";
-import Constants from "expo-constants";
-import SafeStorage from "../safe-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import EventEmitter from "events";
-import { webProviders } from "config/auth";
-import { signinGithub, SigninResult } from "./ExpoAuth";
-import { trpcClient } from "../trpc";
 import { storageKeys } from "app/constants";
-import { useRouter } from "solito/router";
 import { routes } from "app/navigation/routePaths";
-
-export * from "./types";
+import { webProviders } from "config/auth";
+import Constants from "expo-constants";
+import { useRouter } from "solito/router";
+import SafeStorage from "../safe-storage";
+import { trpcClient } from "../trpc";
+import { signinGithub, SigninResult } from "./ExpoAuth";
 
 export async function fetchData<T = any>(
   path: string,
   __NEXTAUTH: NextAuthClientConfig,
   logger: LoggerInstance,
-  { ctx, req = ctx?.req }: CtxOrReq = {}
+  {}: CtxOrReq = {}
 ): Promise<T | null> {
   const url = `${apiBaseUrl(__NEXTAUTH)}/${path}`;
   const sessionToken = await SafeStorage.get(storageKeys.sessionToken);
@@ -83,15 +71,7 @@ export function apiBaseUrl(__NEXTAUTH: NextAuthClientConfig) {
 }
 
 const nextAuthUrl = Constants.manifest?.extra?.nextAuthUrl;
-console.log("nextAuthUrl", nextAuthUrl);
 
-// const parseUrl = (a: any) => ({ origin: "", path: "" });
-// This behaviour mirrors the default behaviour for getting the site name that
-// happens server side in server/index.js
-// 1. An empty value is legitimate when the code is being invoked client side as
-//    relative URLs are valid in that context and so defaults to empty.
-// 2. When invoked server side the value is picked up from an environment
-//    variable and defaults to 'http://localhost:3000'.
 const __NEXTAUTH: NextAuthClientConfig = {
   baseUrl: parseUrl(nextAuthUrl).origin,
   basePath: parseUrl(nextAuthUrl).path,
@@ -102,7 +82,6 @@ const __NEXTAUTH: NextAuthClientConfig = {
   _getSession: () => {},
 };
 
-// const broadcast = new EventEmitter();
 const logger = proxyLogger(_logger, __NEXTAUTH.basePath);
 
 export type SessionContextValue<R extends boolean = false> = R extends true
@@ -140,10 +119,6 @@ export function useSession<R extends boolean>(options?: UseSessionOptions<R>) {
 
   React.useEffect(() => {
     if (requiredAndNotLoading) {
-      // const url = `/api/auth/signin?${new URLSearchParams({
-      //   error: "SessionRequired",
-      //   callbackUrl: window.location.href,
-      // })}`;
       if (onUnauthenticated) onUnauthenticated();
       else push(routes.login.getPath());
     }
@@ -169,9 +144,6 @@ export async function getSession(params?: GetSessionParams) {
     logger,
     params
   );
-  // if (params?.broadcast ?? true) {
-  //   broadcast.emit("session", { trigger: "getSession" });
-  // }
   return session;
 }
 
@@ -184,8 +156,6 @@ export async function getSession(params?: GetSessionParams) {
  * [Documentation](https://next-auth.js.org/getting-started/client#getcsrftoken)
  */
 export async function getCsrfToken(params?: CtxOrReq) {
-  // type CsrfResponse = { csrfToken: string };
-  // const response = await fetchData("csrf", __NEXTAUTH, logger, params);
   const { csrfToken, csrfTokenCookie } = await trpcClient.query("auth.csrf");
 
   await SafeStorage.set(storageKeys.csrfToken, csrfTokenCookie);
@@ -379,23 +349,6 @@ export function SessionProvider(props: SessionProviderProps) {
       __NEXTAUTH._getSession = () => {};
     };
   }, []);
-
-  // React.useEffect(() => {
-  //   // Listen for storage events and update session if event fired from
-  //   // another window (but suppress firing another event to avoid a loop)
-  //   // Fetch new session data but tell it to not to fire another event to
-  //   // avoid an infinite loop.
-  //   // Note: We could pass session data through and do something like
-  //   // `setData(message.data)` but that can cause problems depending
-  //   // on how the session object is being used in the client; it is
-  //   // more robust to have each window/tab fetch it's own copy of the
-  //   // session object rather than share it across instances.
-  //   const listener = () => __NEXTAUTH._getSession({ event: "storage" });
-  //   broadcast.on("session", listener);
-  //   return () => {
-  //     broadcast.off("session", listener);
-  //   };
-  // }, []);
 
   useFocusEffect(
     React.useCallback(() => {

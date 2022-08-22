@@ -13,7 +13,6 @@ const configFunc = ({}: ConfigContext): ExpoConfig => ({
   android: {
     package: "dev.chamatt.kaol",
   },
-  // TODO: extra: include NEXTAUTH_URL
   extra: {
     nextAuthUrl: process.env.NEXTAUTH_URL,
   },
