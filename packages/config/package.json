@@ -5,7 +5,8 @@
   "license": "MIT",
   "files": [
     "eslint/*",
-    "tsconfig/*"
+    "tsconfig/*",
+    "auth/*"
   ],
   "dependencies": {
     "eslint-config-next": "^12.1.0",

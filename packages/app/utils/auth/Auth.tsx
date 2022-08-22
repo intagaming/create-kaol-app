@@ -44,6 +44,7 @@ import SafeStorage from "../safe-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import EventEmitter from "events";
 import { defaultCookies } from "next-auth/core/lib/cookie";
+import { webProviders } from "config/auth";
 
 export * from "./types";
 
@@ -240,17 +241,7 @@ export async function signIn<
 ): Promise<
   P extends RedirectableProviderType ? SignInResponse | undefined : undefined
 > {
-  const baseUrl = apiBaseUrl(__NEXTAUTH);
-  const providers = await getProviders();
-
-  if (!providers) {
-    // TODO:
-    // window.location.href = `${baseUrl}/error`;
-    console.log("no providers");
-    return;
-  }
-
-  if (!provider || !(provider in providers)) {
+  if (!provider || !webProviders.includes(provider)) {
     // TODO:
     // window.location.href = `${baseUrl}/signin?${new URLSearchParams({
     //   callbackUrl,
@@ -258,9 +249,6 @@ export async function signIn<
     console.log("provider not valid", provider);
     return;
   }
-
-  const isCredentials = providers[provider].type === "credentials";
-  const isEmail = providers[provider].type === "email";
 
   const proxyRedirectUri = AuthSession.makeRedirectUri({ useProxy: true }); // https://auth.expo.io
 
