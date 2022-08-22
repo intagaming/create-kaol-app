@@ -294,7 +294,6 @@ export async function signOut<R extends boolean = true>(
   }
 
   await SafeStorage.remove(storageKeys.sessionToken);
-  await SafeStorage.remove(storageKeys.csrfToken); // FIXME: maybe not necessary
 
   // Trigger session refetch to update AuthContext state.
   await __NEXTAUTH._getSession({ event: "storage" });
