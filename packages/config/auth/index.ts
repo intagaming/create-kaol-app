@@ -1,9 +1,12 @@
-export const providerPairs = {
+export const nativeProviders = {
   github: "github-expo",
-  "github-expo": "github",
+  discord: "discord-expo",
 } as const;
-export const isValidProvider = (k: string): k is keyof typeof providerPairs => {
-  return k in providerPairs;
+
+export const isValidProvider = (
+  k: string
+): k is keyof typeof nativeProviders => {
+  return k in nativeProviders;
 };
 
-export const webProviders = ["github"];
+export const webProviders = Object.keys(nativeProviders);

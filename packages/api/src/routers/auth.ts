@@ -3,6 +3,7 @@ import z from "zod";
 import type { CookiesOptions } from "next-auth/core/types";
 import { webHost } from "app/config";
 import { authOptions } from "../../../../apps/next/pages/api/auth/[...nextauth]";
+import { TRPCError } from "@trpc/server";
 
 function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
@@ -80,6 +81,7 @@ export const authRouter = createRouter()
     input: z.object({
       provider: z.string(),
       proxyRedirectUri: z.string(),
+      usePKCE: z.boolean().default(true),
     }),
     resolve: async ({ input }) => {
       // Get csrf token
@@ -140,19 +142,39 @@ export const authRouter = createRouter()
       stateEncrypted: z.string(),
       csrfTokenCookie: z.string(),
       callbackUrl: z.string(),
-      codeVerifier: z.string(),
+      codeVerifier: z.string().optional(),
     }),
     resolve: async ({ input }) => {
       // Callback
+      let cookie = `${authCookies.csrfToken.name}=${input.csrfTokenCookie}; ${authCookies.state.name}=${input.stateEncrypted}`;
+      if (input.codeVerifier) {
+        cookie = appendCookie(
+          cookie,
+          `${authCookies.pkceCodeVerifier.name}=${input.codeVerifier}`
+        );
+      }
       const callbackRes = await fetch(
         `${webHost}/api/auth/callback/${input.provider}?state=${input.state}&code=${input.code}`,
         {
           redirect: "manual",
           headers: {
-            Cookie: `${authCookies.csrfToken.name}=${input.csrfTokenCookie}; ${authCookies.state.name}=${input.stateEncrypted}; ${authCookies.pkceCodeVerifier.name}=${input.codeVerifier}`,
+            Cookie: cookie,
           },
         }
       );
+      const location = callbackRes.headers.get("location");
+      if (!location) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "No location",
+        });
+      }
+      const url = new URL(location);
+      const params = new URLSearchParams(url.search);
+      const error = params.get("error");
+      if (error) {
+        return { error };
+      }
       const sessionToken = getCookieFromHeader(
         authCookies.sessionToken.name,
         callbackRes.headers

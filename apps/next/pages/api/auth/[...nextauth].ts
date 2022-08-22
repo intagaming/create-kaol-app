@@ -2,7 +2,8 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "db";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
-import { isValidProvider, providerPairs } from "config/auth";
+import DiscordProvider from "next-auth/providers/discord";
+import { isValidProvider, nativeProviders } from "config/auth";
 
 const prismaAdapter = PrismaAdapter(prisma);
 
@@ -20,7 +21,6 @@ export const authOptions: NextAuthOptions = {
         checks: ["state", "pkce"],
         token: {
           async request(context) {
-            // context contains useful properties to help you make the request.
             const tokens = await context.client.oauthCallback(
               process.env.EXPO_PROXY_URL,
               context.params,
@@ -30,7 +30,28 @@ export const authOptions: NextAuthOptions = {
           },
         },
       }),
-      id: providerPairs["github"],
+      id: nativeProviders.github,
+    },
+    DiscordProvider({
+      clientId: process.env.DISCORD_ID ?? "",
+      clientSecret: process.env.DISCORD_SECRET ?? "",
+    }),
+    {
+      ...DiscordProvider({
+        clientId: process.env.DISCORD_ID ?? "",
+        clientSecret: process.env.DISCORD_SECRET ?? "",
+        token: {
+          async request(context) {
+            const tokens = await context.client.oauthCallback(
+              process.env.EXPO_PROXY_URL,
+              context.params,
+              context.checks
+            );
+            return { tokens };
+          },
+        },
+      }),
+      id: nativeProviders.discord,
     },
   ],
   callbacks: {
@@ -52,7 +73,7 @@ export const authOptions: NextAuthOptions = {
       if (!userByAccount) {
         const provider = account.provider;
         if (isValidProvider(provider)) {
-          const counterpart = providerPairs[provider];
+          const counterpart = nativeProviders[provider];
           const userByAccount = await prismaAdapter.getUserByAccount({
             providerAccountId: account.providerAccountId,
             provider: counterpart,

@@ -35,10 +35,11 @@ import { storageKeys } from "app/constants";
 import { routes } from "app/navigation/routePaths";
 import { webProviders } from "config/auth";
 import Constants from "expo-constants";
+import { Alert } from "react-native";
 import { useRouter } from "solito/router";
 import SafeStorage from "../safe-storage";
 import { trpcClient } from "../trpc";
-import { signinGithub, SigninResult } from "./ExpoAuth";
+import { signinDiscord, signinGithub, SigninResult } from "./ExpoAuth";
 
 export async function fetchData<T = any>(
   path: string,
@@ -209,6 +210,9 @@ export async function signIn<
     case "github":
       signinResult = await signinGithub();
       break;
+    case "discord":
+      signinResult = await signinDiscord();
+      break;
     default:
       return;
   }
@@ -222,20 +226,32 @@ export async function signIn<
     provider: nativeProvider,
   } = signinResult;
 
-  if (result.type === "success") {
-    const { sessionToken } = await trpcClient.query("auth.callback", {
-      provider: nativeProvider,
-      code: result.params.code as string,
-      csrfTokenCookie,
-      state,
-      stateEncrypted,
-      callbackUrl: proxyRedirectUri,
-      codeVerifier,
-    });
-    console.log("sessionToken received in Client", sessionToken);
-    await SafeStorage.set(storageKeys.sessionToken, sessionToken);
-    await __NEXTAUTH._getSession({ event: "storage" });
+  if (result.type !== "success") return; // TODO: handle other results
+
+  const { error, sessionToken } = await trpcClient.query("auth.callback", {
+    provider: nativeProvider,
+    code: result.params.code as string,
+    csrfTokenCookie,
+    state,
+    stateEncrypted,
+    callbackUrl: proxyRedirectUri,
+    codeVerifier,
+  });
+  if (error || !sessionToken) {
+    switch (error) {
+      case "OAuthAccountNotLinked": {
+        Alert.alert(
+          "Error",
+          "The email associated with the account you just logged in is being used by another account. Please log into that account and then link to other providers afterwards."
+        );
+        break;
+      }
+    }
+    return;
   }
+  console.log("sessionToken received in Client", sessionToken);
+  await SafeStorage.set(storageKeys.sessionToken, sessionToken);
+  await __NEXTAUTH._getSession({ event: "storage" });
 }
 
 /**
