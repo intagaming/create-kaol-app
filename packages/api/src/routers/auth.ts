@@ -2,6 +2,7 @@ import { createRouter } from "./context";
 import z from "zod";
 import type { CookiesOptions } from "next-auth/core/types";
 import { webHost } from "app/config";
+import { authOptions } from "../../../../apps/next/pages/api/auth/[...nextauth]";
 
 function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
@@ -66,7 +67,9 @@ const getCookieFromHeader = (name: string, headers: Headers) => {
     ?.split(";")[0];
 };
 
-export const authCookies = defaultCookies(false);
+export const authCookies = defaultCookies(
+  authOptions.useSecureCookies ?? webHost.startsWith("https://")
+);
 
 const appendCookie = (cookieString: string, cookie: string) => {
   return cookieString !== "" ? `${cookieString}; ${cookie}` : cookie;
