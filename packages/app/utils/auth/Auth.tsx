@@ -46,6 +46,7 @@ import EventEmitter from "events";
 import { webProviders } from "config/auth";
 import { signinGithub, SigninResult } from "./ExpoAuth";
 import { trpcClient } from "../trpc";
+import { storageKeys } from "app/constants";
 
 export * from "./types";
 
@@ -56,9 +57,9 @@ export async function fetchData<T = any>(
   { ctx, req = ctx?.req }: CtxOrReq = {}
 ): Promise<T | null> {
   const url = `${apiBaseUrl(__NEXTAUTH)}/${path}`;
-  const sessionToken = await SafeStorage.get("sessionToken");
+  const sessionToken = await SafeStorage.get(storageKeys.sessionToken);
   try {
-    let csrfToken = await SafeStorage.get("csrf");
+    let csrfToken = await SafeStorage.get(storageKeys.csrfToken);
     if (!csrfToken) {
       csrfToken = (await getCsrfToken())?.csrfTokenCookie ?? null;
     }
@@ -184,7 +185,7 @@ export async function getCsrfToken(params?: CtxOrReq) {
   // const response = await fetchData("csrf", __NEXTAUTH, logger, params);
   const { csrfToken, csrfTokenCookie } = await trpcClient.query("auth.csrf");
 
-  await SafeStorage.set("csrf", csrfTokenCookie);
+  await SafeStorage.set(storageKeys.csrfToken, csrfTokenCookie);
 
   return {
     csrfToken,
@@ -263,7 +264,7 @@ export async function signIn<
       codeVerifier,
     });
     console.log("sessionToken received in Client", sessionToken);
-    await SafeStorage.set("sessionToken", sessionToken);
+    await SafeStorage.set(storageKeys.sessionToken, sessionToken);
     await __NEXTAUTH._getSession({ event: "storage" });
   }
 }
@@ -277,10 +278,10 @@ export async function signIn<
 export async function signOut<R extends boolean = true>(
   options?: SignOutParams<R>
 ): Promise<void> {
-  const sessionToken = await SafeStorage.get("sessionToken");
+  const sessionToken = await SafeStorage.get(storageKeys.sessionToken);
   if (!sessionToken) throw new Error("No sessionToken");
 
-  let csrfToken = await SafeStorage.get("csrf");
+  let csrfToken = await SafeStorage.get(storageKeys.csrfToken);
   if (!csrfToken) {
     csrfToken = (await getCsrfToken())?.csrfTokenCookie ?? null;
   }
@@ -292,8 +293,8 @@ export async function signOut<R extends boolean = true>(
     return;
   }
 
-  await SafeStorage.remove("sessionToken");
-  await SafeStorage.remove("csrf");
+  await SafeStorage.remove(storageKeys.sessionToken);
+  await SafeStorage.remove(storageKeys.csrfToken); // FIXME: maybe not necessary
 
   // Trigger session refetch to update AuthContext state.
   await __NEXTAUTH._getSession({ event: "storage" });

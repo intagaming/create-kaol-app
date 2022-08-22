@@ -1,4 +1,5 @@
 import Config from "app/config";
+import { storageKeys } from "app/constants";
 import { trpc } from "app/utils/trpc";
 import SafeStorage from "lib/safe-storage";
 import { useState } from "react";
@@ -8,7 +9,7 @@ const createTrpcClient = () => {
   return trpc.createClient({
     url: Config.apiUrl,
     async headers() {
-      const sessionToken = await SafeStorage.get("sessionToken");
+      const sessionToken = await SafeStorage.get(storageKeys.sessionToken);
 
       return {
         authorization: sessionToken ? `Bearer ${sessionToken}` : undefined,
