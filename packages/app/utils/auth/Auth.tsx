@@ -43,21 +43,11 @@ import Constants from "expo-constants";
 import SafeStorage from "../safe-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import EventEmitter from "events";
-import { defaultCookies } from "next-auth/core/lib/cookie";
 import { webProviders } from "config/auth";
 import { signinGithub, SigninResult } from "./ExpoAuth";
 import { trpcClient } from "../trpc";
 
 export * from "./types";
-
-export const getCookieFromHeader = (name: string, headers: Headers) => {
-  return headers
-    .get("set-cookie")
-    ?.split(", ")
-    .filter((s) => s.startsWith(`${name}=`))[0]
-    ?.split("=")[1]
-    ?.split(";")[0];
-};
 
 export async function fetchData<T = any>(
   path: string,
