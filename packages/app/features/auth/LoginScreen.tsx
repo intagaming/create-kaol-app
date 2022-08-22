@@ -1,4 +1,4 @@
-import { Button } from "app/components/Button";
+import Button from "app/components/Button";
 import { getProviders, signIn } from "app/utils/auth";
 import { webProviders } from "config/auth";
 import { ClientSafeProvider } from "next-auth/react";

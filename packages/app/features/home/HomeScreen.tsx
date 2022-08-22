@@ -1,5 +1,5 @@
-import { Button } from "app/components/Button";
-import { EnvironmentStatusBar } from "app/components/EnvironmentStatusBar";
+import Button from "app/components/Button";
+import EnvironmentStatusBar from "app/components/EnvironmentStatusBar";
 import { routes } from "app/navigation/routePaths";
 import { signOut, useSession } from "app/utils/auth";
 import { trpc } from "app/utils/trpc";

@@ -2,7 +2,7 @@ import { getCurrentChannel } from "app/config";
 import { Platform } from "react-native";
 import { Text, View } from "universal";
 
-export const EnvironmentStatusBar = () => {
+const EnvironmentStatusBar = () => {
   if (Platform.OS !== "web") {
     return (
       <View tw="bg-orange-200 text-center">
@@ -14,3 +14,5 @@ export const EnvironmentStatusBar = () => {
   }
   return null;
 };
+
+export default EnvironmentStatusBar;
