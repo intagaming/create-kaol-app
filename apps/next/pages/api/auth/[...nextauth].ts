@@ -3,8 +3,15 @@ import { prisma } from "db";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 
+const prismaAdapter = PrismaAdapter(prisma);
+
+const providerPairs: { [provider: string]: string } = {
+  github: "github-expo",
+  "github-expo": "github",
+};
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: prismaAdapter,
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID ?? "",
@@ -27,7 +34,7 @@ export const authOptions: NextAuthOptions = {
           },
         },
       }),
-      id: "github-expo",
+      id: providerPairs["github"],
     },
   ],
   callbacks: {
@@ -39,6 +46,32 @@ export const authOptions: NextAuthOptions = {
       else if (url.startsWith("https://auth.expo.io/@xuanan2001/kaol-expo"))
         return url;
       return baseUrl;
+    },
+    async signIn({ account }) {
+      const userByAccount = await prismaAdapter.getUserByAccount({
+        providerAccountId: account.providerAccountId,
+        provider: account.provider,
+      });
+      // If registering
+      if (!userByAccount) {
+        if (account.provider in providerPairs) {
+          const counterpart = providerPairs[account.provider];
+          const userByAccount = await prismaAdapter.getUserByAccount({
+            providerAccountId: account.providerAccountId,
+            provider: counterpart,
+          });
+          // If exists the account in the counterpart provider
+          if (userByAccount) {
+            // Link the account to the user
+            await prismaAdapter.linkAccount({
+              ...account,
+              userId: userByAccount.id,
+            });
+          }
+        }
+      }
+
+      return true;
     },
   },
 };
